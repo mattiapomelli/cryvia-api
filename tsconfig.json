@@ -6,8 +6,13 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
+    "outDir": "./dist",
     "baseUrl": "./src",
-    "outDir": "./dist"
+    "paths": {
+      "@routes/*": ["routes/*"],
+      "@controllers/*": ["controllers/*"],
+    }
   },
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }
