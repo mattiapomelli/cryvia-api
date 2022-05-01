@@ -9,5 +9,5 @@ const config: ControllerConfig = {
 controllers.register(config, async (req, res) => {
   const users = await prisma.user.findMany()
 
-  res.status(200).json({ data: users })
+  res.resolve(users)
 })

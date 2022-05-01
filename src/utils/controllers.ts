@@ -1,11 +1,12 @@
 import { Express, Request, Response } from 'express'
+import WrappedResponse from './wrappedResponse'
 
 export interface ControllerConfig {
   path: string
   method: 'get' | 'post' | 'put' | 'delete' | 'patch'
 }
 
-type Controller = (req: Request, res: Response) => void
+type Controller = (req: Request, res: WrappedResponse) => void
 
 class Controllers {
   app: Express | null = null
@@ -17,7 +18,7 @@ class Controllers {
   wrapController(controller: Controller) {
     return async (req: Request, res: Response) => {
       try {
-        await controller(req, res)
+        await controller(req, new WrappedResponse(res))
       } catch (error) {
         res.json('Error')
       }

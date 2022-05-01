@@ -2,21 +2,22 @@ import prisma from '@lib/prisma'
 import controllers, { ControllerConfig } from '@utils/controllers'
 
 const config: ControllerConfig = {
-  method: 'get',
+  method: 'put',
   path: '/users/:id',
 }
 
 controllers.register(config, async (req, res) => {
   const id = Number(req.params.id)
-  const user = await prisma.user.findUnique({
+  const { username } = req.body
+
+  const user = await prisma.user.update({
     where: {
       id,
     },
+    data: {
+      username,
+    },
   })
-
-  if (!user) {
-    return res.notFound('User not found')
-  }
 
   return res.resolve(user)
 })
