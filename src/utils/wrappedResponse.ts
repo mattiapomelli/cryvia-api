@@ -24,24 +24,32 @@ class WrappedResponse {
     this.res.status(400).json({ data: errors })
   }
 
-  unAuthorized(message: string) {
+  unAuthorized(message?: string) {
     this.res.status(401).json({ message })
   }
 
-  forbidden(message: string) {
+  forbidden(message?: string) {
     this.res.status(403).json({ message })
   }
 
-  notFound(message: string) {
+  notFound(message?: string) {
     this.res.status(404).json({ message })
   }
 
-  conflict(message: string) {
+  conflict(message?: string) {
     this.res.status(409).json({ message })
   }
 
   unexpectedError(message?: string) {
     this.res.status(500).json(message ? { message } : {})
+  }
+
+  setLocals(key: string, value: any) {
+    this.res.locals[key] = value
+  }
+
+  getLocals(key: string) {
+    return this.res.locals[key]
   }
 }
 

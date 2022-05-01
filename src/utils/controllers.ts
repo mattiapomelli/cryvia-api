@@ -1,12 +1,14 @@
-import { Express, Request, Response } from 'express'
+import { Express, NextFunction, Request, Response } from 'express'
+
 import WrappedResponse from './wrappedResponse'
+import authMiddleware from '@middlewares/auth'
+import { Controller, Middleware } from 'types'
 
 export interface ControllerConfig {
   path: string
   method: 'get' | 'post' | 'put' | 'delete' | 'patch'
+  isPublic?: boolean
 }
-
-type Controller = (req: Request, res: WrappedResponse) => void
 
 class Controllers {
   app: Express | null = null
@@ -22,7 +24,19 @@ class Controllers {
         await controller(req, wrappedRes)
       } catch (error) {
         console.log(error)
-        wrappedRes.unexpectedError('Something went wrong')
+        return wrappedRes.unexpectedError('Something went wrong')
+      }
+    }
+  }
+
+  wrapMiddleware(middleware: Middleware) {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      const wrappedRes = new WrappedResponse(res)
+      try {
+        await middleware(req, wrappedRes, next)
+      } catch (error) {
+        console.log(error)
+        return wrappedRes.unexpectedError('Something went wrong')
       }
     }
   }
@@ -32,7 +46,17 @@ class Controllers {
       throw Error('App must be initialized before registering a controller')
     }
 
-    this.app[config.method](config.path, this.wrapController(controller))
+    const { method, path, isPublic = false } = config
+
+    if (isPublic) {
+      this.app[method](path, this.wrapController(controller))
+    } else {
+      this.app[method](
+        path,
+        this.wrapMiddleware(authMiddleware),
+        this.wrapController(controller),
+      )
+    }
   }
 }
 
