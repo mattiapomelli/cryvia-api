@@ -1,11 +1,93 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-  provider = "prisma-client-js"
+datasource db {
+  provider             = "mysql"
+  url                  = env("DATABASE_URL")
+  referentialIntegrity = "prisma"
 }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+model User {
+  id          Int              @id @default(autoincrement())
+  address     String           @unique @db.VarChar(256)
+  username    String           @unique @db.VarChar(256)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  submissions QuizSubmission[]
+
+  @@map("users")
+}
+
+model Quiz {
+  id          Int              @id @default(autoincrement())
+  name        String           @db.VarChar(100)
+  description String?          @db.VarChar(256)
+  price       Int
+  startTime   DateTime
+  createdAt   DateTime         @default(now())
+  questions   QuizQuestions[]
+  submissions QuizSubmission[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestions {
+  quiz       Quiz     @relation(fields: [quizId], references: [id])
+  quizId     Int
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId Int
+  index      Int      @db.UnsignedTinyInt
+
+  @@id([quizId, questionId])
+  @@map("quiz_questions")
+}
+
+model Question {
+  id                Int                 @id @default(autoincrement())
+  text              String              @db.VarChar(256)
+  quizzes           QuizQuestions[]
+  answers           Answer[]
+  submissionAnswers SubmissionAnswers[]
+
+  @@map("questions")
+}
+
+model Answer {
+  id                Int                 @id @default(autoincrement())
+  text              String              @db.VarChar(256)
+  question          Question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId        Int
+  correct           Boolean
+  index             Int                 @db.UnsignedTinyInt
+  submissionAnswers SubmissionAnswers[]
+
+  @@map("answers")
+}
+
+model QuizSubmission {
+  id          Int                 @id @default(autoincrement())
+  quiz        Quiz                @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId      Int
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userId      Int
+  submittedAt DateTime            @default(now())
+  time        Int                 @db.UnsignedMediumInt
+  answers     SubmissionAnswers[]
+
+  @@map("quiz_submissions")
+}
+
+model SubmissionAnswers {
+  submission   QuizSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId Int
+  question     Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId   Int
+  answer       Answer         @relation(fields: [answerId], references: [id], onDelete: NoAction)
+  answerId     Int
+  index        Int            @db.UnsignedTinyInt
+
+  @@id([submissionId, questionId])
+  @@map("submission_answers")
 }
