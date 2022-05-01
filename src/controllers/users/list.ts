@@ -7,11 +7,7 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
-  try {
-    const users = await prisma.user.findMany()
+  const users = await prisma.user.findMany()
 
-    res.status(200).json({ data: users })
-  } catch (error) {
-    console.log(error)
-  }
+  res.status(200).json({ data: users })
 })

@@ -7,20 +7,16 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
-  try {
-    const id = Number(req.params.id)
-    const user = await prisma.user.findUnique({
-      where: {
-        id,
-      },
-    })
+  const id = Number(req.params.id)
+  const user = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  })
 
-    if (!user) {
-      return res.status(404).send({ message: 'User not found' })
-    }
-
-    return res.json(user)
-  } catch (error) {
-    console.log(error)
+  if (!user) {
+    return res.status(404).send({ message: 'User not found' })
   }
+
+  return res.json(user)
 })

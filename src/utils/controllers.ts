@@ -14,12 +14,22 @@ class Controllers {
     this.app = app
   }
 
+  wrapController(controller: Controller) {
+    return async (req: Request, res: Response) => {
+      try {
+        await controller(req, res)
+      } catch (error) {
+        res.json('Error')
+      }
+    }
+  }
+
   register(config: ControllerConfig, controller: Controller) {
     if (!this.app) {
       throw Error('App must be initialized before registering a controller')
     }
 
-    this.app[config.method](config.path, controller)
+    this.app[config.method](config.path, this.wrapController(controller))
   }
 }
 

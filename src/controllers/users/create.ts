@@ -7,26 +7,22 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
-  try {
-    const { username, address } = req.body
+  const { username, address } = req.body
 
-    if (!username) {
-      return res.status(400).send({ message: 'Username is required' })
-    }
-
-    if (!address) {
-      return res.status(400).send({ message: 'Address is required' })
-    }
-
-    const user = await prisma.user.create({
-      data: {
-        username,
-        address,
-      },
-    })
-
-    return res.json(user)
-  } catch (error) {
-    console.log(error)
+  if (!username) {
+    return res.status(400).send({ message: 'Username is required' })
   }
+
+  if (!address) {
+    return res.status(400).send({ message: 'Address is required' })
+  }
+
+  const user = await prisma.user.create({
+    data: {
+      username,
+      address,
+    },
+  })
+
+  return res.json(user)
 })
