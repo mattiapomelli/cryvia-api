@@ -12,6 +12,12 @@ controllers.register(config, async (req, res) => {
     where: {
       id,
     },
+    select: {
+      id: true,
+      address: true,
+      username: true,
+      createdAt: true,
+    },
   })
 
   if (!user) {
