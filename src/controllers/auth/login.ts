@@ -1,10 +1,13 @@
+import jwt from 'jsonwebtoken'
+import { recoverPersonalSignature } from '@metamask/eth-sig-util'
+
 import prisma from '@lib/prisma'
 import controllers, { ControllerConfig } from '@utils/controllers'
-import { recoverPersonalSignature } from '@metamask/eth-sig-util'
 
 const config: ControllerConfig = {
   method: 'post',
   path: '/auth/login',
+  isPublic: true,
 }
 
 controllers.register(config, async (req, res) => {
@@ -50,7 +53,19 @@ controllers.register(config, async (req, res) => {
       },
     })
 
-    return res.resolve({ data: 'Login succesfull' })
+    const payload = {
+      id: user.id,
+      address: user.address,
+    }
+
+    if (!process.env.JWT_SECRET) {
+      console.log('JWT_SECRET envinronment variable must be set')
+      throw new Error()
+    }
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET)
+
+    return res.resolve({ token })
   } catch (error) {
     return res.unAuthorized('Failed to verify signature')
   }
