@@ -17,10 +17,12 @@ class Controllers {
 
   wrapController(controller: Controller) {
     return async (req: Request, res: Response) => {
+      const wrappedRes = new WrappedResponse(res)
       try {
-        await controller(req, new WrappedResponse(res))
+        await controller(req, wrappedRes)
       } catch (error) {
-        res.json('Error')
+        console.log(error)
+        wrappedRes.unexpectedError('Something went wrong')
       }
     }
   }

@@ -30,6 +30,10 @@ class WrappedResponse {
   conflict(message: string) {
     this.res.status(409).json({ message })
   }
+
+  unexpectedError(message?: string) {
+    this.res.status(500).json(message ? { message } : {})
+  }
 }
 
 export default WrappedResponse
