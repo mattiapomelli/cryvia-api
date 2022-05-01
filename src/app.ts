@@ -1,7 +1,8 @@
 import express, { Express } from 'express'
 import dotenv from 'dotenv'
+import glob from 'glob'
 
-import routes from './routes'
+import controllers from './utils/controllers'
 
 dotenv.config()
 
@@ -10,8 +11,13 @@ const port = process.env.PORT || 8000
 
 app.use(express.json())
 
-for (const route of routes) {
-  app.use(route.path, route.router)
+controllers.init(app)
+
+const files = glob.sync('src/controllers/**/*.ts')
+
+for (const filePath of files) {
+  const path = '.' + filePath.replace('src', '').split('.')[0]
+  import(path)
 }
 
 app.listen(port, () => {

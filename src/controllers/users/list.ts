@@ -1,17 +1,17 @@
-import { NextFunction, Request, Response } from 'express'
-
 import prisma from '@lib/prisma'
+import controllers, { ControllerConfig } from '@utils/controllers'
 
-export default async function getAllUsers(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+const config: ControllerConfig = {
+  method: 'get',
+  path: '/users',
+}
+
+controllers.register(config, async (req, res) => {
   try {
     const users = await prisma.user.findMany()
 
     res.status(200).json({ data: users })
   } catch (error) {
-    next(error)
+    console.log(error)
   }
-}
+})

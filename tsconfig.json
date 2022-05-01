@@ -12,6 +12,7 @@
       "@routes/*": ["routes/*"],
       "@controllers/*": ["controllers/*"],
       "@lib/*": ["lib/*"],
+      "@utils/*": ["utils/*"],
     }
   },
   "include": ["src/**/*.ts"],

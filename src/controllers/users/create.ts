@@ -1,12 +1,12 @@
-import { NextFunction, Request, Response } from 'express'
-
 import prisma from '@lib/prisma'
+import controllers, { ControllerConfig } from '@utils/controllers'
 
-export default async function createUser(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+const config: ControllerConfig = {
+  method: 'post',
+  path: '/users',
+}
+
+controllers.register(config, async (req, res) => {
   try {
     const { username, address } = req.body
 
@@ -27,6 +27,6 @@ export default async function createUser(
 
     return res.json(user)
   } catch (error) {
-    next(error)
+    console.log(error)
   }
-}
+})

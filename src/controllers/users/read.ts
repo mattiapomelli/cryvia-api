@@ -1,15 +1,14 @@
-import { NextFunction, Request, Response } from 'express'
-
 import prisma from '@lib/prisma'
+import controllers, { ControllerConfig } from '@utils/controllers'
 
-export default async function getUserById(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const id = Number(req.params.id)
+const config: ControllerConfig = {
+  method: 'get',
+  path: '/users/:id',
+}
 
+controllers.register(config, async (req, res) => {
   try {
+    const id = Number(req.params.id)
     const user = await prisma.user.findUnique({
       where: {
         id,
@@ -22,6 +21,6 @@ export default async function getUserById(
 
     return res.json(user)
   } catch (error) {
-    next(error)
+    console.log(error)
   }
-}
+})
