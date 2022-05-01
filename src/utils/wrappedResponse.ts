@@ -1,5 +1,11 @@
 import { Response } from 'express'
 
+interface Pagination {
+  total: number
+  perPage: number
+  page: number
+}
+
 class WrappedResponse {
   private res: Response
 
@@ -7,12 +13,15 @@ class WrappedResponse {
     this.res = res
   }
 
-  resolve(payload: unknown) {
-    this.res.status(200).json({ data: payload })
+  resolve(data: unknown, pagination?: Pagination) {
+    this.res.status(200).json({
+      data: data,
+      ...(pagination && { pagination }),
+    })
   }
 
-  badRequest(payload: Record<string, string> | string) {
-    this.res.status(400).json({ error: payload })
+  badRequest(errors: Record<string, string> | string) {
+    this.res.status(400).json({ data: errors })
   }
 
   unAuthorized(message: string) {
