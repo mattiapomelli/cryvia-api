@@ -12,7 +12,7 @@ generator client {
 model User {
   id          Int              @id @default(autoincrement())
   address     String           @unique @db.VarChar(256)
-  username    String           @unique @db.VarChar(256)
+  username    String?          @unique @db.VarChar(24)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   submissions QuizSubmission[]

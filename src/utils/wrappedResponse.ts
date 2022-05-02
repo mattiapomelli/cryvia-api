@@ -21,7 +21,7 @@ class WrappedResponse {
   }
 
   badRequest(errors: Record<string, string> | string) {
-    this.res.status(400).json({ data: errors })
+    this.res.status(400).json({ errors })
   }
 
   unAuthorized(message?: string) {
