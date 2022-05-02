@@ -1,9 +1,7 @@
 import validator from 'validator'
 import { isAddress } from '@ethersproject/address'
 
-type Validation = {
-  [key: string]: (value?: string) => [boolean, string]
-}
+import { Validation } from 'types'
 
 const validateUser: Validation = {
   id: (id) => {

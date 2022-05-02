@@ -9,3 +9,7 @@ export type Middleware = (
   res: WrappedResponse,
   next: NextFunction,
 ) => Promise<void>
+
+export type Validation = {
+  [key: string]: (value?: string) => [boolean, string]
+}

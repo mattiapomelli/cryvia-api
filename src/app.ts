@@ -13,6 +13,7 @@ app.use(express.json())
 
 controllers.init(app)
 
+// Load controllers
 const files = glob.sync('src/controllers/**/*.ts')
 
 for (const filePath of files) {
