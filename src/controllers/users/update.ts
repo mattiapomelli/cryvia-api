@@ -21,6 +21,7 @@ controllers.register(config, async (req, res) => {
     return res.badRequest({ username: usernameMessage })
   }
 
+  // Check if username is taken
   const existingUser = await prisma.user.findUnique({
     where: {
       username,
@@ -31,7 +32,19 @@ controllers.register(config, async (req, res) => {
     return res.forbidden('Username is already taken')
   }
 
-  const user = await prisma.user.update({
+  // Check if user to update exists
+  const user = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  })
+
+  if (!user) {
+    return res.notFound('User to update not found')
+  }
+
+  // Update user
+  const updatedUser = await prisma.user.update({
     where: {
       id,
     },
@@ -40,5 +53,5 @@ controllers.register(config, async (req, res) => {
     },
   })
 
-  return res.resolve(user)
+  return res.resolve(updatedUser)
 })

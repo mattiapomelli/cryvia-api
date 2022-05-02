@@ -31,6 +31,12 @@ controllers.register(config, async (req, res) => {
     data: {
       address,
     },
+    select: {
+      id: true,
+      address: true,
+      username: true,
+      createdAt: true,
+    },
   })
 
   return res.resolve(user)
