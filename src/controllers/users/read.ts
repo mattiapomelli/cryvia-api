@@ -1,7 +1,6 @@
-import validator from 'validator'
-
 import prisma from '@lib/prisma'
 import controllers, { ControllerConfig } from '@utils/controllers'
+import validateUser from '@validation/users'
 
 const config: ControllerConfig = {
   method: 'get',
@@ -9,8 +8,9 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
-  if (!validator.isNumeric(req.params.id)) {
-    return res.badRequest({ id: 'Id must be numeric' })
+  const [isValid, message] = validateUser.id(req.params.id)
+  if (!isValid) {
+    return res.badRequest({ id: message })
   }
 
   const id = Number(req.params.id)

@@ -1,7 +1,6 @@
-import validator from 'validator'
-
 import prisma from '@lib/prisma'
 import controllers, { ControllerConfig } from '@utils/controllers'
+import validateUser from '@validation/users'
 
 const config: ControllerConfig = {
   method: 'put',
@@ -9,17 +8,17 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
-  if (!validator.isNumeric(req.params.id)) {
-    return res.badRequest({ id: 'Id must be numeric' })
+  const [isValid, message] = validateUser.id(req.params.id)
+  if (!isValid) {
+    return res.badRequest({ id: message })
   }
 
   const id = Number(req.params.id)
   const { username } = req.body
 
-  if (!validator.isLength(username, { min: 3, max: 24 })) {
-    return res.badRequest({
-      username: 'Username must be between 3 and 24 characters long',
-    })
+  const [isValidUsername, usernameMessage] = validateUser.username(username)
+  if (!isValidUsername) {
+    return res.badRequest({ username: usernameMessage })
   }
 
   const existingUser = await prisma.user.findUnique({

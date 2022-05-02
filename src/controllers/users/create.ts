@@ -1,7 +1,6 @@
-import { isAddress } from '@ethersproject/address'
-
 import prisma from '@lib/prisma'
 import controllers, { ControllerConfig } from '@utils/controllers'
+import validateUser from '@validation/users'
 
 const config: ControllerConfig = {
   method: 'post',
@@ -12,8 +11,10 @@ const config: ControllerConfig = {
 controllers.register(config, async (req, res) => {
   const { address } = req.body
 
-  if (!address) {
-    return res.badRequest({ address: 'Address is required' })
+  const [isValid, message] = validateUser.address(address)
+
+  if (!isValid) {
+    return res.badRequest({ address: message })
   }
 
   const existingUser = await prisma.user.findUnique({
@@ -24,10 +25,6 @@ controllers.register(config, async (req, res) => {
 
   if (existingUser) {
     return res.forbidden('A user with this address already exists')
-  }
-
-  if (!isAddress(address)) {
-    return res.badRequest({ address: 'Address is not valid' })
   }
 
   const user = await prisma.user.create({

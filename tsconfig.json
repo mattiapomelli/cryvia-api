@@ -14,6 +14,7 @@
       "@middlewares/*": ["middlewares/*"],
       "@lib/*": ["lib/*"],
       "@utils/*": ["utils/*"],
+      "@validation/*": ["validation/*"],
     }
   },
   "include": ["src/**/*.ts"],

@@ -3,6 +3,7 @@ import { recoverPersonalSignature } from '@metamask/eth-sig-util'
 
 import prisma from '@lib/prisma'
 import controllers, { ControllerConfig } from '@utils/controllers'
+import validateUser from '@validation/users'
 
 const config: ControllerConfig = {
   method: 'post',
@@ -12,6 +13,15 @@ const config: ControllerConfig = {
 
 controllers.register(config, async (req, res) => {
   const { signature, address } = req.body
+
+  const [isValid, message] = validateUser.address(address)
+  if (!isValid) {
+    return res.badRequest({ address: message })
+  }
+
+  if (!signature) {
+    return res.badRequest({ signature: 'Signature is required' })
+  }
 
   const user = await prisma.user.findUnique({
     where: {
