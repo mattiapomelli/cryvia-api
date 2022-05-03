@@ -6,7 +6,8 @@
   "scripts": {
     "start": "yarn build && node dist/app.js",
     "build": "tsc && tsc-alias",
-    "dev": "nodemon src/app.ts"
+    "dev": "nodemon src/app.ts",
+    "db": "pscale connect crypto-quizzes initial-setup --port 3309"
   },
   "dependencies": {
     "@ethersproject/address": "^5.6.0",
