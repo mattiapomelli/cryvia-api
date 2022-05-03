@@ -4,6 +4,7 @@ import controllers, { ControllerConfig } from '@utils/controllers'
 const config: ControllerConfig = {
   method: 'get',
   path: '/users',
+  isPublic: true,
 }
 
 controllers.register(config, async (req, res) => {
