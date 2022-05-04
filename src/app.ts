@@ -23,6 +23,7 @@ const lobby = new Map<number, WebSocket>()
 
 wss.on('connection', (client, req) => {
   // prendo id utente dall'url
+  // trasformare req.url in classe URLsearchparams per migliore ricerca di chiave nel querystring
   const userId = Number(req.url?.split('=')[1])
 
   // aggiungi client alla lobby
