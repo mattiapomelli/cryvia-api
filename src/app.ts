@@ -1,8 +1,8 @@
 import express, { Express } from 'express'
 import dotenv from 'dotenv'
-import glob from 'glob'
-import * as WebSocket from 'ws'
-import * as http from 'http'
+// import glob from 'glob'
+import { WebSocketServer, WebSocket } from 'ws'
+import http from 'http'
 
 // import controllers from './utils/controllers'
 
@@ -10,24 +10,23 @@ dotenv.config()
 
 const app: Express = express()
 const port = process.env.PORT || 8000
+
 const server = http.createServer(app)
-const wss = new WebSocket.Server({ server })
+const wss = new WebSocketServer({ server })
 
 // c'è da capire come fare le stanze per ogni domanda dinamicamente
 // const questions: WebSocket[][] = [[], [], [], [], [], [], [], [], []]
 
 // questa è la lobby (io avrei fatto pure una HASHMAP ma ho avuto problemi con i tipi)
-const lobby: WebSocket[] = []
+// const lobby: WebSocket[] = []
+const lobby = new Map<number, WebSocket>()
 
-wss.on('connection', (client: WebSocket, req) => {
+wss.on('connection', (client, req) => {
   // prendo id utente dall'url
-  const user = req.url?.split('=')[1]
-  // assegno id ad una nuova chiave dell'oggetto socket
-  // TODO @TIA tu se riesci estendi interfaccia WebSocket
-  client.userId = user
+  const userId = Number(req.url?.split('=')[1])
 
   // aggiungi client alla lobby
-  lobby.push(client)
+  lobby.set(userId, client)
 
   // questo è un copia incolla dei messaggi preso da internet
 
@@ -41,16 +40,18 @@ wss.on('connection', (client: WebSocket, req) => {
   // quando un client chiude connessione al socket
   client.on('close', function () {
     // se client esiste nella lobby lo elimina
-    lobby.indexOf(this) > -1 ? lobby.splice(lobby.indexOf(this), 1) : false
+    if (lobby.has(userId)) {
+      lobby.delete(userId)
+    }
 
     // manda messaggio al client con quanti utenti sono collegati alla lobby dopo la sua uscita
     // TODO broadcastare agli utenti nella lobby quanti sono i client collegati al socket
-    client.send(lobby.length)
+    client.send(lobby.size)
   })
 
   // manda al client connesso subito dopo la connesione quanti client sono collegati al socket
   // TODO broadcastare agli utenti nella lobby quanti sono i client collegati al socket
-  client.send(lobby.length)
+  client.send(lobby.size)
 })
 
 app.use(express.json())
