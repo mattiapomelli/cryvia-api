@@ -25,14 +25,14 @@ export default function handleSocketConnection(
 
   console.log('Client connected, user id: ', userId)
 
-  // Send room size to client
-  client.send(waitingRoom.size)
-
   const broadcastSize = (room: Room) => {
     for (const roomClient of room.values()) {
       roomClient.send(room.size)
     }
   }
+
+  // Send room size to client
+  broadcastSize(waitingRoom)
 
   // On message received from client
   client.on('message', (message: string) => {
