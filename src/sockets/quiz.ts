@@ -15,10 +15,15 @@ let currentQuiz: CurrentQuiz | null = null
 
 type Room = Map<number, WebSocket>
 
+// Room of clients waiting to start the quiz
 const waitingRoom: Room = new Map()
 
 // TODO: get the actual number of rooms from the quiz questions
 const questionRooms: Room[] = []
+
+// Room with clients who finished the quiz
+let leaderBoardRoom: Room = new Map()
+let leaderboard: number[] = []
 
 // Tracks the room where each user is at the moment. We need this to know which room
 // to remove the user from when disconnecting
@@ -31,6 +36,8 @@ export default async function handleSocketConnection(
 ) {
   // Get userId from url
   const userId = Number(req.url?.split('=')[1])
+
+  // TODO: Reject connection if quiz already started
 
   // Add client to waiting room
   waitingRoom.set(userId, client)
@@ -67,7 +74,12 @@ export default async function handleSocketConnection(
   // Broadcasts the size of a room to every client in that room
   const broadcastSize = (room: Room) => {
     for (const roomClient of room.values()) {
-      roomClient.send(room.size)
+      roomClient.send(
+        JSON.stringify({
+          type: 'roomSize',
+          value: room.size,
+        }),
+      )
     }
   }
 
@@ -115,8 +127,36 @@ export default async function handleSocketConnection(
       // Remove client from last question room
       const room = questionRooms[questionRooms.length - 1]
       room.delete(userId)
+      userToRoom.delete(userId)
+
+      // Add user to leaderboard room
+      leaderBoardRoom.set(userId, client)
+      leaderboard.push(userId)
+
+      for (const roomClient of leaderBoardRoom.values()) {
+        roomClient.send(
+          JSON.stringify({
+            type: 'leaderboard',
+            value: leaderboard,
+          }),
+        )
+      }
 
       console.log(`User ${userId} finished quiz`)
+
+      // When all users have finished quiz empty leadeboard
+      if (userToRoom.size === 0) {
+        console.log('All users finished quiz')
+        leaderboard = []
+
+        // Close connection with all clients and empty leaderboard room
+        for (const roomClient of leaderBoardRoom.values()) {
+          roomClient.close()
+        }
+
+        leaderBoardRoom = new Map()
+        console.log(leaderBoardRoom)
+      }
 
       // Broadcast to all clients of new room the new room size
       broadcastSize(room)
@@ -126,11 +166,12 @@ export default async function handleSocketConnection(
   // When client closes connection
   client.on('close', () => {
     const roomNumber = userToRoom.get(userId)
-    console.log(
-      `User ${userId} closing connection, leaving room: ${roomNumber}`,
-    )
 
     if (roomNumber !== undefined) {
+      console.log(
+        `User ${userId} closing connection, leaving room: ${roomNumber}`,
+      )
+
       // Remove client from his room
       const room = roomNumber === -1 ? waitingRoom : questionRooms[roomNumber]
       room.delete(userId)
