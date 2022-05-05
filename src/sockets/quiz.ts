@@ -1,18 +1,31 @@
 import { WebSocket } from 'ws'
 import http from 'http'
+import { QuizQuestions } from '@prisma/client'
+
+import prisma from '@lib/prisma'
+
+interface CurrentQuiz {
+  id: number
+  startTime: Date
+  questions: QuizQuestions[]
+}
+
+// Current quiz that is being played/waited
+let currentQuiz: CurrentQuiz | null = null
 
 type Room = Map<number, WebSocket>
 
 const waitingRoom: Room = new Map()
 
 // TODO: get the actual number of rooms from the quiz questions
-const questionRooms: Room[] = [new Map(), new Map(), new Map()]
+const questionRooms: Room[] = []
 
-// Tracks the room where each user is at the moment. We need this to know
-// which room to remove the user from when disconnecting
+// Tracks the room where each user is at the moment. We need this to know which room
+// to remove the user from when disconnecting
+// -1 means waitingRoom, while numbers >= 0 mean the corresponding question room
 const userToRoom: Map<number, number> = new Map()
 
-export default function handleSocketConnection(
+export default async function handleSocketConnection(
   client: WebSocket,
   req: http.IncomingMessage,
 ) {
@@ -25,6 +38,33 @@ export default function handleSocketConnection(
 
   console.log('Client connected, user id: ', userId)
 
+  if (!currentQuiz) {
+    // Get next quiz
+    const nextQuiz = await prisma.quiz.findFirst({
+      where: {
+        startTime: {
+          gte: new Date(),
+        },
+      },
+      select: {
+        id: true,
+        startTime: true,
+        questions: true,
+      },
+      orderBy: {
+        startTime: 'asc',
+      },
+    })
+
+    // Create a room for each question of the quiz
+    nextQuiz?.questions.forEach(() => {
+      questionRooms.push(new Map())
+    })
+
+    currentQuiz = nextQuiz
+  }
+
+  // Broadcasts the size of a room to every client in that room
   const broadcastSize = (room: Room) => {
     for (const roomClient of room.values()) {
       roomClient.send(room.size)
@@ -41,6 +81,15 @@ export default function handleSocketConnection(
     // User landed on a question
     if (messageData.type === 'questionRoom') {
       const roomNumber = messageData.value
+
+      // Check if received room number is valid
+      if (roomNumber > questionRooms.length - 1) {
+        console.error(
+          `Invalid request: client asked to join room non existent room ${roomNumber}`,
+        )
+        return
+      }
+
       console.log(`User ${userId} passed to room ${roomNumber}`)
 
       const newRoom = questionRooms[roomNumber]
@@ -66,6 +115,8 @@ export default function handleSocketConnection(
       // Remove client from last question room
       const room = questionRooms[questionRooms.length - 1]
       room.delete(userId)
+
+      console.log(`User ${userId} finished quiz`)
 
       // Broadcast to all clients of new room the new room size
       broadcastSize(room)
