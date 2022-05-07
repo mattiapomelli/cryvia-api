@@ -20,6 +20,7 @@ controllers.register(config, async (req, res) => {
       id,
     },
     include: {
+      categories: true,
       questions: {
         orderBy: {
           index: 'asc',

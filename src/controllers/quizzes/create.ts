@@ -15,13 +15,14 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
-  const { name, description, price, questions, startTime } = req.body
+  const { title, description, price, questions, startTime, categories } =
+    req.body
 
   const errors: any = {}
 
-  const [isValidName, messageName] = validateQuiz.name(name)
-  if (!isValidName) {
-    errors.name = messageName
+  const [isValidTitle, messageTitle] = validateQuiz.title(title)
+  if (!isValidTitle) {
+    errors.title = messageTitle
   }
 
   const [isValidPrice, messagePrice] = validateQuiz.price(price?.toString())
@@ -40,9 +41,11 @@ controllers.register(config, async (req, res) => {
     return res.badRequest(errors)
   }
 
+  // TODO: check categories actually exist
+
   const quiz = await prisma.quiz.create({
     data: {
-      name,
+      title,
       description,
       price,
       startTime,
@@ -61,6 +64,11 @@ controllers.register(config, async (req, res) => {
               },
             },
           },
+        })),
+      },
+      categories: {
+        connect: (categories as number[]).map((categoryId) => ({
+          id: categoryId,
         })),
       },
     },

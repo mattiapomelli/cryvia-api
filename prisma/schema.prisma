@@ -15,8 +15,8 @@ model User {
   username      String?            @unique @db.VarChar(24)
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
-  submissions   QuizSubmission[]
   nonce         Int?               @db.UnsignedMediumInt
+  submissions   QuizSubmission[]
   subscriptions QuizSubscription[]
 
   @@map("users")
@@ -24,14 +24,17 @@ model User {
 
 model Quiz {
   id            Int                @id @default(autoincrement())
-  name          String             @db.VarChar(100)
+  title         String             @db.VarChar(100)
   description   String?            @db.VarChar(256)
   price         Int
   startTime     DateTime
   createdAt     DateTime           @default(now())
+  image         String?
   questions     QuizQuestions[]
   submissions   QuizSubmission[]
   subscriptions QuizSubscription[]
+  categories    Category[]
+  resources     Resource[]
 
   @@map("quizzes")
 }
@@ -103,4 +106,17 @@ model QuizSubscription {
 
   @@id([quizId, userId])
   @@map("quiz_subscriptions")
+}
+
+model Category {
+  id      Int    @id @default(autoincrement())
+  name    String @db.VarChar(30)
+  quizzes Quiz[]
+}
+
+model Resource {
+  id      Int    @id @default(autoincrement())
+  title   String @db.VarChar(100)
+  url     String
+  quizzes Quiz[]
 }

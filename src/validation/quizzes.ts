@@ -14,13 +14,13 @@ const validateQuiz: Validation = {
 
     return [true, '']
   },
-  name: (name) => {
-    if (!name) {
-      return [false, 'Name is required']
+  title: (title) => {
+    if (!title) {
+      return [false, 'Title is required']
     }
 
-    if (!validator.isLength(name, { min: 3, max: 100 })) {
-      return [false, 'Quiz name must be between 2 and 100 characters long']
+    if (!validator.isLength(title, { min: 3, max: 100 })) {
+      return [false, 'Quiz title must be between 2 and 100 characters long']
     }
 
     return [true, '']
