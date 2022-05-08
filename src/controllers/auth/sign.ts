@@ -7,6 +7,7 @@ const config: ControllerConfig = {
   isPublic: true,
 }
 
+// Generated a nonce to sign for a given address
 controllers.register(config, async (req, res) => {
   const address = req.params.address
 
