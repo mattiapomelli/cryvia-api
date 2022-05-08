@@ -2,7 +2,7 @@ import { WebSocket } from 'ws'
 import http from 'http'
 import { QuizQuestions } from '@prisma/client'
 
-import prisma from '@lib/prisma'
+import { createSubmission, getNextQuiz } from './utils'
 
 interface CurrentQuiz {
   id: number
@@ -47,21 +47,7 @@ export default async function handleSocketConnection(
 
   if (!currentQuiz) {
     // Get next quiz
-    const nextQuiz = await prisma.quiz.findFirst({
-      where: {
-        startTime: {
-          gte: new Date(),
-        },
-      },
-      select: {
-        id: true,
-        startTime: true,
-        questions: true,
-      },
-      orderBy: {
-        startTime: 'asc',
-      },
-    })
+    const nextQuiz = await getNextQuiz()
 
     // Create a room for each question of the quiz
     nextQuiz?.questions.forEach(() => {
@@ -77,7 +63,7 @@ export default async function handleSocketConnection(
       roomClient.send(
         JSON.stringify({
           type: 'roomSize',
-          value: room.size,
+          payload: room.size,
         }),
       )
     }
@@ -92,7 +78,7 @@ export default async function handleSocketConnection(
 
     // User landed on a question
     if (messageData.type === 'questionRoom') {
-      const roomNumber = messageData.value
+      const roomNumber = messageData.payload
 
       // Check if received room number is valid
       if (roomNumber > questionRooms.length - 1) {
@@ -129,15 +115,28 @@ export default async function handleSocketConnection(
       room.delete(userId)
       userToRoom.delete(userId)
 
+      // Create submission
+      // TODO: calculate score
+      const { answers, time } = messageData.payload
+      if (currentQuiz) {
+        createSubmission({
+          answers,
+          time,
+          quiz: currentQuiz,
+          userId: 1,
+        })
+      }
+
       // Add user to leaderboard room
       leaderBoardRoom.set(userId, client)
       leaderboard.push(userId)
 
+      // Broadcast new leaderboard to everyone in leaderboard room
       for (const roomClient of leaderBoardRoom.values()) {
         roomClient.send(
           JSON.stringify({
             type: 'leaderboard',
-            value: leaderboard,
+            payload: leaderboard,
           }),
         )
       }
