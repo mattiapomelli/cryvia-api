@@ -66,6 +66,8 @@ controllers.register(config, async (req, res) => {
   for (let i = 0; i < quiz.questions.length; i++) {
     const answersIds = quiz.questions[i].question.answers.map((a) => a.id)
 
+    if (!answers[i]) continue
+
     if (!answersIds.includes(answers[i])) {
       return res.badRequest(
         `AnswerId ${answers[i]} is not a possible choice for questionId ${quiz.questions[i].question.id}`,

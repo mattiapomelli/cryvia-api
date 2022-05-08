@@ -90,8 +90,8 @@ model SubmissionAnswers {
   submissionId Int
   question     Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
   questionId   Int
-  answer       Answer         @relation(fields: [answerId], references: [id], onDelete: NoAction)
-  answerId     Int
+  answer       Answer?        @relation(fields: [answerId], references: [id], onDelete: NoAction)
+  answerId     Int?
   index        Int            @db.UnsignedTinyInt
 
   @@id([submissionId, questionId])
