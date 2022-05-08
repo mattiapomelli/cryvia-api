@@ -8,7 +8,14 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
-  const users = await prisma.user.findMany()
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      address: true,
+      username: true,
+      createdAt: true,
+    },
+  })
 
   res.resolve(users)
 })

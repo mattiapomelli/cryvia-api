@@ -24,6 +24,8 @@ const authMiddleware: Middleware = async (req, res, next) => {
     // Verify jwt
     const payload = jwt.verify(token, process.env.JWT_SECRET) as JwtPaylod
 
+    // TODO: Check if id corresponds to an existing user?
+
     res.setLocals('userId', payload.id)
     res.setLocals('userAddress', payload.address)
 

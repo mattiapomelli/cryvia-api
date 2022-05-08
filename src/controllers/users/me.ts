@@ -2,30 +2,27 @@ import prisma from '@lib/prisma'
 import controllers, { ControllerConfig } from '@utils/controllers'
 
 const config: ControllerConfig = {
-  method: 'delete',
+  method: 'get',
   path: '/users/me',
 }
 
 controllers.register(config, async (req, res) => {
   const id = res.getLocals('userId')
-
-  // Check if user to delete exists
   const user = await prisma.user.findUnique({
     where: {
       id,
     },
-  })
-
-  if (!user) {
-    return res.notFound('User to delete not found')
-  }
-
-  // Delete user
-  await prisma.user.delete({
-    where: {
-      id,
+    select: {
+      id: true,
+      address: true,
+      username: true,
+      createdAt: true,
     },
   })
 
-  return res.resolve({ message: 'User deleted' })
+  if (!user) {
+    return res.notFound('User not found')
+  }
+
+  return res.resolve(user)
 })
