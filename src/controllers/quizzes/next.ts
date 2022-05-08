@@ -14,6 +14,9 @@ controllers.register(config, async (req, res) => {
         gte: new Date(),
       },
     },
+    include: {
+      categories: true,
+    },
     orderBy: {
       startTime: 'asc',
     },

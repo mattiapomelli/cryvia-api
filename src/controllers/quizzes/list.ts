@@ -8,7 +8,14 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
-  const quizzes = await prisma.quiz.findMany()
+  const quizzes = await prisma.quiz.findMany({
+    include: {
+      categories: true,
+    },
+    orderBy: {
+      startTime: 'desc',
+    },
+  })
 
   res.resolve(quizzes)
 })
