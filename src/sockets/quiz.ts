@@ -30,6 +30,26 @@ let leaderboard: number[] = []
 // -1 means waitingRoom, while numbers >= 0 mean the corresponding question room
 const userToRoom: Map<number, number> = new Map()
 
+interface MessagePayload {
+  type: string
+  payload?: any
+}
+
+// Broadcast message to all clients in a room
+function broadcast(room: Room, message: MessagePayload) {
+  for (const roomClient of room.values()) {
+    roomClient.send(JSON.stringify(message))
+  }
+}
+
+// Broadcasts the size of a room to every client in that room
+function broadcastSize(room: Room) {
+  broadcast(room, {
+    type: 'roomSize',
+    payload: room.size,
+  })
+}
+
 export default async function handleSocketConnection(
   client: WebSocket,
   req: http.IncomingMessage,
@@ -55,18 +75,6 @@ export default async function handleSocketConnection(
     })
 
     currentQuiz = nextQuiz
-  }
-
-  // Broadcasts the size of a room to every client in that room
-  const broadcastSize = (room: Room) => {
-    for (const roomClient of room.values()) {
-      roomClient.send(
-        JSON.stringify({
-          type: 'roomSize',
-          payload: room.size,
-        }),
-      )
-    }
   }
 
   // Send room size to client
@@ -132,14 +140,10 @@ export default async function handleSocketConnection(
       leaderboard.push(userId)
 
       // Broadcast new leaderboard to everyone in leaderboard room
-      for (const roomClient of leaderBoardRoom.values()) {
-        roomClient.send(
-          JSON.stringify({
-            type: 'leaderboard',
-            payload: leaderboard,
-          }),
-        )
-      }
+      broadcast(leaderBoardRoom, {
+        type: 'leaderboard',
+        payload: leaderboard,
+      })
 
       console.log(`User ${userId} finished quiz`)
 
@@ -147,6 +151,11 @@ export default async function handleSocketConnection(
       if (userToRoom.size === 0) {
         console.log('All users finished quiz')
         leaderboard = []
+
+        // Close connection with all clients and empty leaderboard room
+        broadcast(leaderBoardRoom, {
+          type: 'quizFinished',
+        })
 
         // Close connection with all clients and empty leaderboard room
         for (const roomClient of leaderBoardRoom.values()) {
@@ -174,9 +183,17 @@ export default async function handleSocketConnection(
       // Remove client from his room
       const room = roomNumber === -1 ? waitingRoom : questionRooms[roomNumber]
       room.delete(userId)
+      userToRoom.delete(userId)
 
       // Broadcast to all clients new room size
       broadcastSize(room)
+
+      // If there are no more users playing tell clients the quiz is finished
+      if (userToRoom.size === 0) {
+        broadcast(leaderBoardRoom, {
+          type: 'quizFinished',
+        })
+      }
     }
   })
 }
