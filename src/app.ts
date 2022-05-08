@@ -3,6 +3,8 @@ import dotenv from 'dotenv'
 import glob from 'glob'
 import { WebSocketServer } from 'ws'
 import http from 'http'
+import cors from 'cors'
+
 import handleSocketConnection from 'sockets/quiz'
 
 import controllers from './utils/controllers'
@@ -17,6 +19,7 @@ const server = http.createServer(app)
 const wss = new WebSocketServer({ server })
 wss.on('connection', handleSocketConnection)
 
+app.use(cors())
 app.use(express.json())
 
 controllers.init(app)
