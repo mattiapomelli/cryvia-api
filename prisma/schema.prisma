@@ -30,7 +30,7 @@ model Quiz {
   startTime     DateTime
   createdAt     DateTime           @default(now())
   image         String?
-  questions     QuizQuestions[]
+  questions     QuizQuestions[]  @relation("Quiz")
   submissions   QuizSubmission[]
   subscriptions QuizSubscription[]
   categories    Category[]
@@ -40,9 +40,9 @@ model Quiz {
 }
 
 model QuizQuestions {
-  quiz       Quiz     @relation(fields: [quizId], references: [id])
+  quiz       Quiz     @relation("Quiz",fields: [quizId], references: [id])
   quizId     Int
-  question   Question @relation(fields: [questionId], references: [id])
+  question   Question @relation("QuizQuestions",fields: [questionId], references: [id])
   questionId Int
   index      Int      @db.UnsignedTinyInt
 
@@ -53,7 +53,7 @@ model QuizQuestions {
 model Question {
   id                Int                 @id @default(autoincrement())
   text              String              @db.VarChar(256)
-  quizzes           QuizQuestions[]
+  quizzes           QuizQuestions[]     @relation("QuizQuestions") 
   answers           Answer[]
   submissionAnswers SubmissionAnswers[]
 
