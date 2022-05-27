@@ -23,6 +23,7 @@ controllers.register(config, async (req, res) => {
       submittedAt: 'asc',
     },
     select: {
+      id: true,
       user: {
         select: {
           id: true,

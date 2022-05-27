@@ -22,7 +22,7 @@ controllers.register(config, async (req, res) => {
   })
 
   if (!quiz) {
-    return res.notFound('Quiz to suscribe to not found')
+    return res.notFound('Quiz not found')
   }
 
   // Check if quiz is about to start
@@ -35,7 +35,22 @@ controllers.register(config, async (req, res) => {
       quizId,
     },
     select: {
-      question: true,
+      question: {
+        include: {
+          answers: {
+            orderBy: {
+              index: 'asc',
+            },
+            select: {
+              id: true,
+              text: true,
+              correct: false,
+              index: false,
+              questionId: false,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       index: 'asc',
