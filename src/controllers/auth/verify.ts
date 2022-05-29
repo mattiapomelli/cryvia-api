@@ -2,13 +2,13 @@ import jwt from 'jsonwebtoken'
 import { recoverPersonalSignature } from '@metamask/eth-sig-util'
 
 import prisma from '@lib/prisma'
-import controllers, { ControllerConfig } from '@utils/controllers'
+import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 import validateUser from '@validation/users'
 
 const config: ControllerConfig = {
   method: 'post',
   path: '/auth/verify',
-  isPublic: true,
+  auth: AuthType.PUBLIC,
 }
 
 // Verifies the signature of a given address and issues a jwt if successfull

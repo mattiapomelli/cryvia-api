@@ -1,12 +1,12 @@
 import { Answer } from '@prisma/client'
 
 import prisma from '@lib/prisma'
-import controllers, { ControllerConfig } from '@utils/controllers'
+import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 
 const config: ControllerConfig = {
   method: 'post',
   path: '/questions',
-  isPublic: true,
+  auth: AuthType.PUBLIC,
 }
 
 controllers.register(config, async (req, res) => {

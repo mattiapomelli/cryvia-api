@@ -1,12 +1,12 @@
 import prisma from '@lib/prisma'
 import { Prisma } from '@prisma/client'
-import controllers, { ControllerConfig } from '@utils/controllers'
+import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 import validateUser from '@validation/users'
 
 const config: ControllerConfig = {
   method: 'delete',
   path: '/quizzes/:id',
-  isPublic: true, // TODO: make it callable only by admin
+  auth: AuthType.ADMIN,
 }
 
 controllers.register(config, async (req, res) => {

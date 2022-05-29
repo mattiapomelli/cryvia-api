@@ -1,10 +1,10 @@
 import prisma from '@lib/prisma'
-import controllers, { ControllerConfig } from '@utils/controllers'
+import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 
 const config: ControllerConfig = {
   method: 'post',
   path: '/auth/login',
-  isPublic: true,
+  auth: AuthType.PUBLIC,
 }
 
 // Checks if a user with a given address exists and creates it otherwise

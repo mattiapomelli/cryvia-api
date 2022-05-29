@@ -1,14 +1,14 @@
 import { Answer } from '@prisma/client'
 
 import prisma from '@lib/prisma'
-import controllers, { ControllerConfig } from '@utils/controllers'
+import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 
 type Answers = Answer['id'][]
 
 const config: ControllerConfig = {
   method: 'post',
   path: '/submissions',
-  isPublic: true, // TODO: make it callable only by admin
+  auth: AuthType.ADMIN,
 }
 
 controllers.register(config, async (req, res) => {

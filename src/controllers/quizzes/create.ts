@@ -1,7 +1,7 @@
 import { Question, Answer, Resource } from '@prisma/client'
 
 import prisma from '@lib/prisma'
-import controllers, { ControllerConfig } from '@utils/controllers'
+import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 import validateQuiz from '@validation/quizzes'
 
 type Questions = (Question & {
@@ -11,7 +11,7 @@ type Questions = (Question & {
 const config: ControllerConfig = {
   method: 'post',
   path: '/quizzes',
-  isPublic: true, // TODO: make it callable only by admin
+  auth: AuthType.ADMIN,
 }
 
 controllers.register(config, async (req, res) => {

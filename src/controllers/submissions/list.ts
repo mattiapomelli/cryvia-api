@@ -1,10 +1,10 @@
 import prisma from '@lib/prisma'
-import controllers, { ControllerConfig } from '@utils/controllers'
+import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 
 const config: ControllerConfig = {
   method: 'get',
   path: '/submissions',
-  isPublic: true, // TODO: make it callable only by admin?
+  auth: AuthType.ADMIN,
 }
 
 controllers.register(config, async (req, res) => {

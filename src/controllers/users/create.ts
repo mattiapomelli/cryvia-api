@@ -1,11 +1,11 @@
 import prisma from '@lib/prisma'
-import controllers, { ControllerConfig } from '@utils/controllers'
+import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 import validateUser from '@validation/users'
 
 const config: ControllerConfig = {
   method: 'post',
   path: '/users',
-  isPublic: true,
+  auth: AuthType.PUBLIC,
 }
 
 controllers.register(config, async (req, res) => {
