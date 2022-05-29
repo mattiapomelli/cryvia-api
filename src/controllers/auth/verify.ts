@@ -28,6 +28,13 @@ controllers.register(config, async (req, res) => {
     where: {
       address,
     },
+    select: {
+      id: true,
+      address: true,
+      username: true,
+      createdAt: true,
+      nonce: true,
+    },
   })
 
   if (!user) {
@@ -42,9 +49,11 @@ controllers.register(config, async (req, res) => {
   }
 
   try {
+    const { nonce, ...rest } = user
+
     // Verify signature
     const recoveredAddress = recoverPersonalSignature({
-      data: `Please sign this random nonce: ${user.nonce}`,
+      data: `Please sign this random nonce: ${nonce}`,
       signature,
     })
 
@@ -53,14 +62,14 @@ controllers.register(config, async (req, res) => {
     }
 
     // Update the nonce to prevent reply attacks
-    const nonce = Math.floor(Math.random() * 10000000)
+    const newNonce = Math.floor(Math.random() * 10000000)
 
     await prisma.user.update({
       where: {
         id: user.id,
       },
       data: {
-        nonce,
+        nonce: newNonce,
       },
     })
 
@@ -76,7 +85,7 @@ controllers.register(config, async (req, res) => {
 
     const token = jwt.sign(payload, process.env.JWT_SECRET)
 
-    return res.resolve({ token, user })
+    return res.resolve({ token, user: rest })
   } catch (error) {
     return res.unAuthorized('Failed to verify signature')
   }

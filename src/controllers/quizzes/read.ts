@@ -21,30 +21,6 @@ controllers.register(config, async (req, res) => {
     },
     include: {
       categories: true,
-      questions: {
-        orderBy: {
-          index: 'asc',
-        },
-        select: {
-          index: false,
-          question: {
-            include: {
-              answers: {
-                orderBy: {
-                  index: 'asc',
-                },
-                select: {
-                  id: true,
-                  text: true,
-                  correct: true,
-                  index: false,
-                  questionId: false,
-                },
-              },
-            },
-          },
-        },
-      },
     },
   })
 

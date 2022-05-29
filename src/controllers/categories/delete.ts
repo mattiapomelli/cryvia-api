@@ -10,11 +10,17 @@ const config: ControllerConfig = {
 controllers.register(config, async (req, res) => {
   const id = Number(req.params.id)
 
-  await prisma.category.delete({
+  // Delete category
+  const deleteCategory = prisma.category.delete({
     where: {
       id,
     },
   })
+
+  // Delete quiz categories
+  const deleteQuizCategories = prisma.$executeRaw`DELETE FROM _quiz_categories WHERE A=${id};`
+
+  await prisma.$transaction([deleteQuizCategories, deleteCategory])
 
   return res.resolve({ message: 'Category deleted' })
 })

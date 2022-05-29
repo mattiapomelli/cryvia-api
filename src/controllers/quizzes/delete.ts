@@ -1,4 +1,5 @@
 import prisma from '@lib/prisma'
+import { Prisma } from '@prisma/client'
 import controllers, { ControllerConfig } from '@utils/controllers'
 import validateUser from '@validation/users'
 
@@ -30,10 +31,18 @@ controllers.register(config, async (req, res) => {
     return res.notFound('Quiz to delete not found')
   }
 
-  // Get ids of quiz's questions
-  const questionIds = quiz.questions.map((q) => q.questionId)
+  // Delete quiz
+  const deleteQuiz = prisma.$executeRaw`DELETE FROM quizzes WHERE id=${id};`
 
-  // Get questions of the quiz that are used also in other quizzes
+  // Delete quiz-question associations
+  const deleteQuizQuestions = prisma.quizQuestions.deleteMany({
+    where: {
+      quizId: id,
+    },
+  })
+
+  // Get questions of the quiz to delete that are used also in other quizzes
+  const questionIds = quiz.questions.map((q) => q.questionId)
   const questionsStillUsed = await prisma.quizQuestions.findMany({
     where: {
       questionId: {
@@ -48,42 +57,28 @@ controllers.register(config, async (req, res) => {
     },
   })
 
-  const questionsStillUsedIds = questionsStillUsed.map((q) => q.questionId)
-
   // Get questions that are not used anymore in any quiz
+  const questionsStillUsedIds = questionsStillUsed.map((q) => q.questionId)
   const questionsToDeleteIds = questionIds.filter(
     (q) => !questionsStillUsedIds.includes(q),
   )
 
-  // Delete question assignations of quiz to delete
-  const deleteQuizQuestions = prisma.quizQuestions.deleteMany({
-    where: {
-      quizId: id,
-    },
-  })
-
-  // Delete quiz
-  const deleteQuiz = prisma.quiz.delete({
-    where: {
-      id,
-    },
-  })
-
   // Delete questions that are not used anymore in any quiz
-  const deleteQuestions = prisma.question.deleteMany({
+  const deleteQuestions = prisma.$executeRaw`DELETE FROM questions WHERE id IN (${Prisma.join(
+    questionsToDeleteIds,
+  )});`
+
+  // Delete answers
+  const deleteAnswers = prisma.answer.deleteMany({
     where: {
-      id: {
+      questionId: {
         in: questionsToDeleteIds,
       },
     },
   })
 
-  // Delete quiz submissions
-  const deleteSubmissions = prisma.quizSubmission.deleteMany({
-    where: {
-      quizId: id,
-    },
-  })
+  // Delete submissions
+  const deleteSubmissions = prisma.$executeRaw`DELETE FROM quiz_submissions WHERE quizId=(${id});`
 
   // Delete submission answers of the questions to delete
   const deleteSubmissionsAnswers = prisma.submissionAnswers.deleteMany({
@@ -94,12 +89,31 @@ controllers.register(config, async (req, res) => {
     },
   })
 
+  // Delete subscriptions
+  const deleteSubscriptions = prisma.quizSubscription.deleteMany({
+    where: {
+      quizId: id,
+    },
+  })
+
+  // Delete quiz categories
+  const deleteQuizCategories = prisma.$executeRaw`DELETE FROM _quiz_categories WHERE B=${id};`
+
+  // Delete quiz resources
+  const deleteQuizResources = prisma.$executeRaw`DELETE FROM _quiz_resources WHERE B=${id};`
+
+  // TODO: delete resources that are not used anymore in any quiz?
+
   await prisma.$transaction([
+    deleteQuizResources,
+    deleteQuizCategories,
+    deleteSubscriptions,
     deleteSubmissionsAnswers,
     deleteSubmissions,
     deleteQuizQuestions,
-    deleteQuiz,
     deleteQuestions,
+    deleteAnswers,
+    deleteQuiz,
   ])
 
   return res.resolve({ message: 'Quiz deleted' })
