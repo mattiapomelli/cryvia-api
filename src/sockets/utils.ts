@@ -1,4 +1,4 @@
-import { QuizQuestions } from '@prisma/client'
+import { Answer, QuizQuestions } from '@prisma/client'
 
 import prisma from '@lib/prisma'
 
@@ -9,8 +9,10 @@ export interface CurrentQuiz {
 }
 
 interface SubmissionData {
-  answers: number[]
-  time: number
+  answers: {
+    id: Answer['id'] | null
+    time: number
+  }[]
   quiz: CurrentQuiz
   userId: number
 }
@@ -37,19 +39,19 @@ export async function getNextQuiz() {
 
 export async function createSubmission({
   quiz,
-  answers,
-  time,
   userId,
+  answers,
 }: SubmissionData) {
   await prisma.quizSubmission.create({
     data: {
       quizId: quiz.id,
       userId,
-      time,
+      score: 0, // TODO: calculate actual score
       answers: {
-        create: answers.map((answerId, index) => ({
+        create: answers.map(({ id, time }, index) => ({
           questionId: quiz.questions[index].questionId,
-          answerId: answerId,
+          answerId: id,
+          time,
           index,
         })),
       },

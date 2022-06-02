@@ -3,7 +3,10 @@ import { Answer } from '@prisma/client'
 import prisma from '@lib/prisma'
 import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 
-type Answers = Answer['id'][]
+type Answers = {
+  id: Answer['id'] | null
+  time: number
+}[]
 
 const config: ControllerConfig = {
   method: 'post',
@@ -12,7 +15,7 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
-  const { quizId, userId, answers, time } = req.body
+  const { quizId, userId, answers } = req.body
 
   const quiz = await prisma.quiz.findUnique({
     where: {
@@ -55,6 +58,8 @@ controllers.register(config, async (req, res) => {
     return res.notFound('User not found')
   }
 
+  // TODO: check if user has already submitted the quiz
+
   // Check if number of given answers is the same as the number of questions of the quiz
   if (answers.length !== quiz.questions.length) {
     return res.badRequest(
@@ -65,12 +70,14 @@ controllers.register(config, async (req, res) => {
   // Check the answer ids actually correspond to possible answers for each question
   for (let i = 0; i < quiz.questions.length; i++) {
     const answersIds = quiz.questions[i].question.answers.map((a) => a.id)
+    const givenAnswer = (answers as Answers)[i]
 
-    if (!answers[i]) continue
+    // Check if answer was given
+    if (!givenAnswer?.id) continue
 
-    if (!answersIds.includes(answers[i])) {
+    if (!answersIds.includes(givenAnswer.id)) {
       return res.badRequest(
-        `AnswerId ${answers[i]} is not a possible choice for questionId ${quiz.questions[i].question.id}`,
+        `AnswerId ${givenAnswer.id} is not a possible choice for questionId ${quiz.questions[i].question.id}`,
       )
     }
   }
@@ -79,11 +86,12 @@ controllers.register(config, async (req, res) => {
     data: {
       quizId,
       userId,
-      time,
+      score: 0, // TODO: calculate actual score
       answers: {
-        create: (answers as Answers).map((answerId, index) => ({
+        create: (answers as Answers).map(({ id, time }, index) => ({
           questionId: quiz.questions[index].question.id,
-          answerId: answerId,
+          answerId: id,
+          time,
           index,
         })),
       },
@@ -93,6 +101,7 @@ controllers.register(config, async (req, res) => {
       quizId: true,
       userId: true,
       submittedAt: true,
+      score: true,
       answers: {
         orderBy: {
           index: 'asc',
@@ -100,6 +109,7 @@ controllers.register(config, async (req, res) => {
         select: {
           questionId: true,
           answerId: true,
+          time: true,
         },
       },
     },

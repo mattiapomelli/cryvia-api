@@ -117,19 +117,17 @@ export default async function handleSocketConnection(
     }
 
     // User finished the quiz
-    if (messageData.type === 'finishedQuiz') {
+    if (messageData.type === 'submitQuiz') {
       // Remove client from last question room
       const room = questionRooms[questionRooms.length - 1]
       room.delete(userId)
       userToRoom.delete(userId)
 
       // Create submission
-      // TODO: calculate score
-      const { answers, time } = messageData.payload
+      const { answers } = messageData.payload
       if (currentQuiz) {
         createSubmission({
           answers,
-          time,
           quiz: currentQuiz,
           userId: 1,
         })
