@@ -1,14 +1,7 @@
 import { WebSocket } from 'ws'
 import http from 'http'
-import { QuizQuestions } from '@prisma/client'
 
-import { createSubmission, getNextQuiz } from './utils'
-
-interface CurrentQuiz {
-  id: number
-  startTime: Date
-  questions: QuizQuestions[]
-}
+import { createSubmission, CurrentQuiz, getNextQuiz } from './utils'
 
 // Current quiz that is being played/waited
 let currentQuiz: CurrentQuiz | null = null
