@@ -122,7 +122,7 @@ export default async function handleSocketConnection(
         createSubmission({
           answers,
           quiz: currentQuiz,
-          userId: 1,
+          userId,
         })
       }
 
@@ -154,7 +154,6 @@ export default async function handleSocketConnection(
         }
 
         leaderBoardRoom = new Map()
-        console.log(leaderBoardRoom)
       }
 
       // Broadcast to all clients of new room the new room size
