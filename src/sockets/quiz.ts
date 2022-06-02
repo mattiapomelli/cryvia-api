@@ -1,7 +1,12 @@
 import { WebSocket } from 'ws'
 import http from 'http'
 
-import { createSubmission, CurrentQuiz, getNextQuiz } from './utils'
+import {
+  createSubmission,
+  CurrentQuiz,
+  getNextQuiz,
+  setQuizWinners,
+} from './utils'
 
 // Current quiz that is being played/waited
 let currentQuiz: CurrentQuiz | null = null
@@ -74,7 +79,7 @@ export default async function handleSocketConnection(
   broadcastSize(waitingRoom)
 
   // On message received from client
-  client.on('message', (message: string) => {
+  client.on('message', async (message: string) => {
     const messageData = JSON.parse(message)
 
     // User landed on a question
@@ -119,6 +124,7 @@ export default async function handleSocketConnection(
       // Create submission
       const { answers } = messageData.payload
       if (currentQuiz) {
+        // TODO: await if is last user to avoid concurrenct with setWinners?
         createSubmission({
           answers,
           quiz: currentQuiz,
@@ -142,6 +148,11 @@ export default async function handleSocketConnection(
       if (userToRoom.size === 0) {
         console.log('All users finished quiz')
         leaderboard = []
+
+        // Set quiz winners
+        if (currentQuiz) {
+          await setQuizWinners(currentQuiz.id)
+        }
 
         // Close connection with all clients and empty leaderboard room
         broadcast(leaderBoardRoom, {

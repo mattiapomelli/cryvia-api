@@ -20,7 +20,7 @@ controllers.register(config, async (req, res) => {
       quizId: id,
     },
     orderBy: {
-      submittedAt: 'asc',
+      score: 'desc',
     },
     select: {
       id: true,
@@ -32,6 +32,7 @@ controllers.register(config, async (req, res) => {
         },
       },
       submittedAt: true,
+      score: true,
     },
   })
 

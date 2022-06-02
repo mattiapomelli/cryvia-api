@@ -76,5 +76,7 @@ controllers.register(config, async (req, res) => {
     },
   })
 
+  // TODO: create quiz on blockchain
+
   return res.resolve(quiz)
 })

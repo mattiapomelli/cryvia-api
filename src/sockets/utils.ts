@@ -1,6 +1,7 @@
 import { Answer, Question } from '@prisma/client'
 
 import prisma from '@lib/prisma'
+import { getQuizContract } from '@lib/contracts'
 
 export interface CurrentQuiz {
   id: number
@@ -90,7 +91,7 @@ function calculateScore(quiz: CurrentQuiz, answers: SubmissionAnswer[]) {
     }
   }
 
-  const formattedScore = Number(score.toFixed(2)) * 100
+  const formattedScore = Math.floor(Number(score.toFixed(2)) * 100)
 
   return formattedScore
 }
@@ -147,4 +148,32 @@ export async function createSubmission({
       },
     },
   })
+}
+
+export async function setQuizWinners(quizId: number) {
+  const submissions = await prisma.quizSubmission.findMany({
+    where: {
+      quizId,
+    },
+    orderBy: {
+      score: 'desc',
+    },
+    take: 3, // TODO: replace with number of winners of the quiz
+    include: {
+      user: {
+        select: {
+          id: true,
+          address: true,
+        },
+      },
+    },
+  })
+
+  const winners = submissions.map((s) => s.user.address)
+
+  console.log(`Winners of quiz ${quizId}: `, winners)
+
+  // Save winners on the blockchain
+  const quizContract = await getQuizContract()
+  await quizContract.setWinners(1, winners) // TODO: replace with given id
 }

@@ -1,10 +1,8 @@
-import { Answer } from '@prisma/client'
-
 import prisma from '@lib/prisma'
 import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 
 type Answers = {
-  id: Answer['id'] | null
+  id: number | null
   time: number
 }[]
 
