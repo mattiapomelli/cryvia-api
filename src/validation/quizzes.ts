@@ -2,7 +2,9 @@ import validator from 'validator'
 
 import { Validation } from 'types'
 
-const validateQuiz: Validation = {
+const errors: Record<string, string> = {}
+
+const quizValidators: Validation = {
   id: (id) => {
     if (!id) {
       return [false, 'Id is required']
@@ -19,8 +21,12 @@ const validateQuiz: Validation = {
       return [false, 'Title is required']
     }
 
+    if (!(typeof title === 'string')) {
+      return [false, 'Quiz title must be a string']
+    }
+
     if (!validator.isLength(title, { min: 3, max: 100 })) {
-      return [false, 'Quiz title must be between 2 and 100 characters long']
+      return [false, 'Quiz title must be between 3 and 100 characters long']
     }
 
     return [true, '']
@@ -52,5 +58,25 @@ const validateQuiz: Validation = {
     return [true, '']
   },
 }
+
+interface QuizValidator {
+  [key: keyof typeof quizValidators]: any
+}
+
+const validateQuiz = (
+  quiz: QuizValidator,
+): [boolean, Record<string, string>] => {
+  Object.keys(quiz).forEach((value) => {
+    const validator = quizValidators[value.toString()](quiz[value.toString()])
+    if (!validator[0]) {
+      errors[value.toString()] = validator[1]
+    }
+  })
+  if (Object.keys(errors).length) return [false, errors]
+
+  return [true, {}]
+}
+
+export { quizValidators }
 
 export default validateQuiz

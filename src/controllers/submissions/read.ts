@@ -1,6 +1,6 @@
 import prisma from '@lib/prisma'
 import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
-import validateQuiz from '@validation/quizzes'
+import { quizValidators } from '@validation/quizzes'
 
 const config: ControllerConfig = {
   method: 'get',
@@ -9,7 +9,7 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
-  const [isValid, message] = validateQuiz.id(req.params.id)
+  const [isValid, message] = quizValidators.id(req.params.id)
   if (!isValid) {
     return res.badRequest({ id: message })
   }

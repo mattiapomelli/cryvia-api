@@ -25,28 +25,17 @@ controllers.register(config, async (req, res) => {
     resources,
   } = req.body
 
-  const errors: any = {}
-
-  const [isValidTitle, messageTitle] = validateQuiz.title(title)
-  if (!isValidTitle) {
-    errors.title = messageTitle
-  }
-
-  const [isValidPrice, messagePrice] = validateQuiz.price(price?.toString())
-  if (!isValidPrice) {
-    errors.price = messagePrice
-  }
-
-  const [isValidStartTime, messageStartTime] = validateQuiz.startTime(startTime)
-  if (!isValidStartTime) {
-    errors.startTime = messageStartTime
-  }
+  const [isValid, errors] = validateQuiz({
+    title,
+    price: price?.toString(),
+    startTime,
+  })
 
   // TODO: check categories actually exist
   // TODO: check each question is valid (has at least 4 answers and only 1 correct answer)
   // TODO: make it possible to pass also just the id of an already existing question
 
-  if (Object.keys(errors).length !== 0) {
+  if (!isValid) {
     return res.badRequest(errors)
   }
 
