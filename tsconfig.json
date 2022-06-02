@@ -6,6 +6,7 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "outDir": "./dist",
     "baseUrl": "./src",
     "paths": {
@@ -15,6 +16,7 @@
       "@lib/*": ["lib/*"],
       "@utils/*": ["utils/*"],
       "@validation/*": ["validation/*"],
+      "@abis/*": ["abis/*"],
     }
   },
   "include": ["src/**/*.ts"],
