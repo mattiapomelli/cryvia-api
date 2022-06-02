@@ -1,20 +1,14 @@
 import prisma from '@lib/prisma'
-import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
-import validateUser from '@validation/users'
+import controllers, { ControllerConfig } from '@utils/controllers'
 
 const config: ControllerConfig = {
   method: 'get',
-  path: '/users/:id/submissions',
-  auth: AuthType.ADMIN,
+  path: '/users/me/submissions',
 }
 
 controllers.register(config, async (req, res) => {
-  const [isValid, message] = validateUser.id(req.params.id)
-  if (!isValid) {
-    return res.badRequest({ id: message })
-  }
+  const id = res.getLocals('userId')
 
-  const id = Number(req.params.id)
   const submissions = await prisma.quizSubmission.findMany({
     where: {
       userId: id,

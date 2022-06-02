@@ -10,6 +10,17 @@ const config: ControllerConfig = {
 controllers.register(config, async (req, res) => {
   const id = Number(req.params.id)
 
+  // Check if user exists
+  const submission = await prisma.quizSubmission.findUnique({
+    where: {
+      id,
+    },
+  })
+
+  if (!submission) {
+    return res.notFound('Submission to delete not found')
+  }
+
   // Delete submission
   const deleteSubmission = prisma.$executeRaw`DELETE FROM quiz_submissions WHERE id=${id};`
 

@@ -29,6 +29,7 @@ controllers.register(config, async (req, res) => {
         },
       },
       submittedAt: true,
+      score: true,
       answers: {
         orderBy: {
           index: 'asc',
@@ -42,6 +43,7 @@ controllers.register(config, async (req, res) => {
               correct: true,
             },
           },
+          time: true,
         },
       },
     },
