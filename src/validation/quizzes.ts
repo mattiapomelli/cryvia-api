@@ -2,8 +2,6 @@ import validator from 'validator'
 
 import { Validation } from 'types'
 
-const errors: Record<string, string> = {}
-
 const quizValidators: Validation = {
   id: (id) => {
     if (!id) {
@@ -66,12 +64,15 @@ interface QuizValidator {
 const validateQuiz = (
   quiz: QuizValidator,
 ): [boolean, Record<string, string>] => {
+  const errors: Record<string, string> = {}
+
   Object.keys(quiz).forEach((value) => {
     const validator = quizValidators[value.toString()](quiz[value.toString()])
     if (!validator[0]) {
       errors[value.toString()] = validator[1]
     }
   })
+
   if (Object.keys(errors).length) return [false, errors]
 
   return [true, {}]
