@@ -26,9 +26,10 @@ controllers.register(config, async (req, res) => {
   }
 
   // Check if quiz is about to start
-  if (quiz.startTime.getTime() > Date.now() - 5000) {
-    return res.forbidden('Can only get questions when quiz is about to start')
-  }
+  // TODO: uncomment this for production
+  // if (quiz.startTime.getTime() > Date.now() - 5000) {
+  //   return res.forbidden('Can only get questions when quiz is about to start')
+  // }
 
   const questions = await prisma.quizQuestions.findMany({
     where: {
