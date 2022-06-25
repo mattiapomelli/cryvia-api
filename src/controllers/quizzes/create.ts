@@ -3,6 +3,8 @@ import { Question, Answer, Resource } from '@prisma/client'
 import prisma from '@lib/prisma'
 import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 import validateQuiz from '@validation/quizzes'
+import { getQuizContract } from '@lib/contracts'
+import { ethers } from 'ethers'
 
 type Questions = (Question & {
   answers: Answer[]
@@ -77,6 +79,11 @@ controllers.register(config, async (req, res) => {
   })
 
   // TODO: create quiz on blockchain
+  const quizContract = await getQuizContract()
+  await quizContract.createQuiz(
+    quiz.id,
+    ethers.utils.parseUnits(price.toString(), 18),
+  )
 
   return res.resolve(quiz)
 })
