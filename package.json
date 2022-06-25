@@ -4,8 +4,8 @@
   "main": "app.js",
   "license": "MIT",
   "scripts": {
-    "start": "yarn build && node dist/app.js",
-    "build": "npx tsc && npx tsc-alias",
+    "start": "node dist/app.js",
+    "build": "tsc && tsc-alias",
     "dev": "nodemon src/app.ts",
     "db": "pscale connect crypto-quizzes initial-setup --port 3309"
   },
