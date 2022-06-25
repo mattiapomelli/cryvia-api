@@ -12,6 +12,14 @@ controllers.register(config, async (req, res) => {
     orderBy: {
       submittedAt: 'desc',
     },
+    include: {
+      user: {
+        select: {
+          id: true,
+          address: true,
+        },
+      },
+    },
   })
 
   res.resolve(submissions)
