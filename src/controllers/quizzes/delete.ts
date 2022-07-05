@@ -1,5 +1,4 @@
 import prisma from '@lib/prisma'
-import { Prisma } from '@prisma/client'
 import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 import validateUser from '@validation/users'
 
@@ -31,13 +30,9 @@ controllers.register(config, async (req, res) => {
     return res.notFound('Quiz to delete not found')
   }
 
-  // Delete quiz
-  const deleteQuiz = prisma.$executeRaw`DELETE FROM quizzes WHERE id=${id};`
-
-  // Delete quiz-question associations
-  const deleteQuizQuestions = prisma.quizQuestions.deleteMany({
+  const deleteQuiz = prisma.quiz.delete({
     where: {
-      quizId: id,
+      id,
     },
   })
 
@@ -63,58 +58,17 @@ controllers.register(config, async (req, res) => {
     (q) => !questionsStillUsedIds.includes(q),
   )
 
-  // Delete questions that are not used anymore in any quiz
-  const deleteQuestions = prisma.$executeRaw`DELETE FROM questions WHERE id IN (${Prisma.join(
-    questionsToDeleteIds,
-  )});`
-
-  // Delete answers
-  const deleteAnswers = prisma.answer.deleteMany({
+  const deleteQuestions = prisma.question.deleteMany({
     where: {
-      questionId: {
+      id: {
         in: questionsToDeleteIds,
       },
     },
   })
-
-  // Delete submissions
-  const deleteSubmissions = prisma.$executeRaw`DELETE FROM quiz_submissions WHERE quizId=(${id});`
-
-  // Delete submission answers of the questions to delete
-  const deleteSubmissionsAnswers = prisma.submissionAnswers.deleteMany({
-    where: {
-      questionId: {
-        in: questionsToDeleteIds,
-      },
-    },
-  })
-
-  // Delete subscriptions
-  const deleteSubscriptions = prisma.quizSubscription.deleteMany({
-    where: {
-      quizId: id,
-    },
-  })
-
-  // Delete quiz categories
-  const deleteQuizCategories = prisma.$executeRaw`DELETE FROM _quiz_categories WHERE B=${id};`
-
-  // Delete quiz resources
-  const deleteQuizResources = prisma.$executeRaw`DELETE FROM _quiz_resources WHERE B=${id};`
 
   // TODO: delete resources that are not used anymore in any quiz?
 
-  await prisma.$transaction([
-    deleteQuizResources,
-    deleteQuizCategories,
-    deleteSubscriptions,
-    deleteSubmissionsAnswers,
-    deleteSubmissions,
-    deleteQuizQuestions,
-    deleteQuestions,
-    deleteAnswers,
-    deleteQuiz,
-  ])
+  await prisma.$transaction([deleteQuestions, deleteQuiz])
 
   return res.resolve({ message: 'Quiz deleted' })
 })

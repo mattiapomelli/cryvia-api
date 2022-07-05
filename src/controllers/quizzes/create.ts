@@ -82,7 +82,7 @@ controllers.register(config, async (req, res) => {
   const quizContract = await getQuizContract()
   await quizContract.createQuiz(
     quiz.id,
-    ethers.utils.parseUnits(price.toString(), 18),
+    ethers.utils.parseUnits(price.toString(), 18), // TODO: use actual number of decimals
   )
 
   return res.resolve(quiz)
