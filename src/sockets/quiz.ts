@@ -6,47 +6,14 @@ import {
   CurrentQuiz,
   getNextQuiz,
   setQuizWinners,
-} from './utils'
+} from '../lib/quizzes'
+import { InputMessageType } from './types'
+import RoomManager from './rooms'
 
 // Current quiz that is being played/waited
 let currentQuiz: CurrentQuiz | null = null
 
-type Room = Map<number, WebSocket>
-
-// Room of clients waiting to start the quiz
-const waitingRoom: Room = new Map()
-
-// TODO: get the actual number of rooms from the quiz questions
-const questionRooms: Room[] = []
-
-// Room with clients who finished the quiz
-let leaderBoardRoom: Room = new Map()
-let leaderboard: number[] = []
-
-// Tracks the room where each user is at the moment. We need this to know which room
-// to remove the user from when disconnecting
-// -1 means waitingRoom, while numbers >= 0 mean the corresponding question room
-const userToRoom: Map<number, number> = new Map()
-
-interface MessagePayload {
-  type: string
-  payload?: any
-}
-
-// Broadcast message to all clients in a room
-function broadcast(room: Room, message: MessagePayload) {
-  for (const roomClient of room.values()) {
-    roomClient.send(JSON.stringify(message))
-  }
-}
-
-// Broadcasts the size of a room to every client in that room
-function broadcastSize(room: Room) {
-  broadcast(room, {
-    type: 'roomSize',
-    payload: room.size,
-  })
-}
+const rooms = new RoomManager()
 
 export default async function handleSocketConnection(
   client: WebSocket,
@@ -54,72 +21,39 @@ export default async function handleSocketConnection(
 ) {
   // Get userId from url
   const userId = Number(req.url?.split('=')[1])
+  console.log('Client connected, user id: ', userId)
 
   // TODO: Reject connection if quiz already started
 
   // Add client to waiting room
-  waitingRoom.set(userId, client)
-  userToRoom.set(userId, -1)
-
-  console.log('Client connected, user id: ', userId)
+  rooms.addToWaitingRoom(userId, client)
 
   if (!currentQuiz) {
     // Get next quiz
     const nextQuiz = await getNextQuiz()
-
-    // Create a room for each question of the quiz
-    nextQuiz?.questions.forEach(() => {
-      questionRooms.push(new Map())
-    })
+    if (!nextQuiz) return
 
     currentQuiz = nextQuiz
-  }
 
-  // Send room size to client
-  broadcastSize(waitingRoom)
+    // Create a room for each question of the quiz
+    rooms.createQuestionRooms(currentQuiz.questions.length)
+  }
 
   // On message received from client
   client.on('message', async (message: string) => {
     const messageData = JSON.parse(message)
 
     // User landed on a question
-    if (messageData.type === 'questionRoom') {
+    if (messageData.type === InputMessageType.EnterQuestion) {
       const roomNumber = messageData.payload
 
-      // Check if received room number is valid
-      if (roomNumber > questionRooms.length - 1) {
-        console.error(
-          `Invalid request: client asked to join room non existent room ${roomNumber}`,
-        )
-        return
-      }
-
-      console.log(`User ${userId} passed to room ${roomNumber}`)
-
-      const newRoom = questionRooms[roomNumber]
-      const oldRoom =
-        roomNumber === 0 ? waitingRoom : questionRooms[roomNumber - 1]
-
-      // Remove client from old room
-      oldRoom.delete(userId)
-
-      // Add client to new question room
-      newRoom.set(userId, client)
-      userToRoom.set(userId, roomNumber)
-
-      // Broadcast to all clients of old room the new room size
-      broadcastSize(oldRoom)
-
-      // Broadcast to all clients of new room the new room size
-      broadcastSize(newRoom)
+      rooms.addToQuestionRoom(userId, client, roomNumber)
     }
 
     // User finished the quiz
-    if (messageData.type === 'submitQuiz') {
-      // Remove client from last question room
-      const room = questionRooms[questionRooms.length - 1]
-      room.delete(userId)
-      userToRoom.delete(userId)
+    if (messageData.type === InputMessageType.SubmitQuiz) {
+      rooms.addToFinalRoom(userId, client)
+      console.log(`User ${userId} finished quiz`)
 
       // Create submission
       const { answers } = messageData.payload
@@ -132,69 +66,38 @@ export default async function handleSocketConnection(
         })
       }
 
-      // Add user to leaderboard room
-      leaderBoardRoom.set(userId, client)
-      leaderboard.push(userId)
-
-      // Broadcast new leaderboard to everyone in leaderboard room
-      broadcast(leaderBoardRoom, {
-        type: 'leaderboard',
-        payload: leaderboard,
-      })
-
-      console.log(`User ${userId} finished quiz`)
-
+      // TODO: set next quiz to null when finished
       // When all users have finished quiz empty leadeboard
-      if (userToRoom.size === 0) {
+      if (rooms.usersPlayingCount() === 0) {
         console.log('All users finished quiz')
-        leaderboard = []
 
         // Set quiz winners
         if (currentQuiz) {
           await setQuizWinners(currentQuiz.id)
         }
 
-        // Close connection with all clients and empty leaderboard room
-        broadcast(leaderBoardRoom, {
-          type: 'quizFinished',
-        })
-
-        // Close connection with all clients and empty leaderboard room
-        for (const roomClient of leaderBoardRoom.values()) {
-          roomClient.close()
-        }
-
-        leaderBoardRoom = new Map()
+        rooms.broadcastEnd()
       }
-
-      // Broadcast to all clients of new room the new room size
-      broadcastSize(room)
     }
   })
 
   // When client closes connection
-  client.on('close', () => {
-    const roomNumber = userToRoom.get(userId)
+  client.on('close', async () => {
+    console.log(`User ${userId} closing connection`)
 
-    if (roomNumber !== undefined) {
-      console.log(
-        `User ${userId} closing connection, leaving room: ${roomNumber}`,
-      )
+    rooms.removeFromRoom(userId)
 
-      // Remove client from his room
-      const room = roomNumber === -1 ? waitingRoom : questionRooms[roomNumber]
-      room.delete(userId)
-      userToRoom.delete(userId)
+    // TODO: check to don't call this twice, if already been called skip
+    // If there are no more users playing tell clients the quiz is finished
+    if (rooms.usersPlayingCount() === 0) {
+      console.log('All users finished quiz')
 
-      // Broadcast to all clients new room size
-      broadcastSize(room)
-
-      // If there are no more users playing tell clients the quiz is finished
-      if (userToRoom.size === 0) {
-        broadcast(leaderBoardRoom, {
-          type: 'quizFinished',
-        })
+      // Set quiz winners
+      if (currentQuiz) {
+        await setQuizWinners(currentQuiz.id)
       }
+
+      rooms.broadcastEnd()
     }
   })
 }
