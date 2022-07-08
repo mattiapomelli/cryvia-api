@@ -5,13 +5,13 @@ import { broadcast, broadcastSize } from './utils'
 
 class RoomManager {
   // Room of clients waiting to start the quiz
-  private waitingRoom: Room = new Map()
+  private waitingRoom: Room
 
   // Question rooms
-  private questionRooms: Room[] = []
+  private questionRooms: Room[]
 
   // Room with clients who finished the quiz
-  finalRoom: Room = new Map()
+  finalRoom: Room
 
   // TODO: keep track of number of users that finished (even if they left final room).
   // Should be already done
@@ -19,7 +19,14 @@ class RoomManager {
   // Tracks the room where each user is at the moment. We need this to know which room
   // to remove the user from when disconnecting
   // -1 means waitingRoom, while numbers >= 0 mean the corresponding question room
-  private userToRoom: Map<number, number> = new Map()
+  private userToRoom: Map<number, number>
+
+  constructor() {
+    this.waitingRoom = new Map()
+    this.questionRooms = []
+    this.finalRoom = new Map()
+    this.userToRoom = new Map()
+  }
 
   getUserRoom(userId: number) {
     return this.userToRoom.get(userId)
