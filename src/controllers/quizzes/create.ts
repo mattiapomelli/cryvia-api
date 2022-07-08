@@ -78,12 +78,13 @@ controllers.register(config, async (req, res) => {
     },
   })
 
-  // TODO: create quiz on blockchain
   const quizContract = await getQuizContract()
-  await quizContract.createQuiz(
+  const tx = await quizContract.createQuiz(
     quiz.id,
     ethers.utils.parseUnits(price.toString(), 18), // TODO: use actual number of decimals
   )
+
+  await tx.wait()
 
   return res.resolve(quiz)
 })

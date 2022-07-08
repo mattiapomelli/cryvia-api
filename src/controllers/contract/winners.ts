@@ -38,7 +38,8 @@ controllers.register(config, async (req, res) => {
 
   // Save winners on the blockchain
   const quizContract = await getQuizContract()
-  await quizContract.setWinners(1, winners) // TODO: replace with quiz from request body
+  const tx = await quizContract.setWinners(1, winners) // TODO: replace with quiz from request body
+  await tx.wait()
 
   return res.resolve({})
 })

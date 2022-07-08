@@ -21,8 +21,11 @@ controllers.register(config, async (req, res) => {
 
     const price = await quizContract.quizPrice(quizId)
 
-    await tokenContract.approve(quizContract.address, price)
-    await quizContract.subscribe(quizId)
+    const approveTx = await tokenContract.approve(quizContract.address, price)
+    await approveTx.wait()
+
+    const subscribeTx = await quizContract.subscribe(quizId)
+    await subscribeTx.wait()
   }
 
   return res.resolve(`Succesfully subscribed ${addresses} to quiz ${quizId}`)
