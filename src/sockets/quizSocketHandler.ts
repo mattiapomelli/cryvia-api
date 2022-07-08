@@ -19,7 +19,16 @@ class QuizSocketHandler {
   constructor() {
     this.rooms = new RoomManager()
     this.currentQuiz = null
-    console.log('Rooms costr: ', this.rooms)
+  }
+
+  async setupQuiz() {
+    const nextQuiz = await getNextQuiz()
+    if (!nextQuiz) return
+
+    this.currentQuiz = nextQuiz
+
+    // Create a room for each question of the quiz
+    this.rooms.createQuestionRooms(this.currentQuiz.questions.length)
   }
 
   async onConnection(client: WebSocket, req: http.IncomingMessage) {
@@ -28,21 +37,12 @@ class QuizSocketHandler {
     console.log('Client connected, user id: ', userId)
 
     // TODO: Reject connection if quiz already started
+    if (!this.currentQuiz) {
+      this.setupQuiz()
+    }
 
     // Add client to waiting room
-    console.log('Rooms conn: ', this.rooms)
     this.rooms.addToWaitingRoom(userId, client)
-
-    if (!this.currentQuiz) {
-      // Get next quiz
-      const nextQuiz = await getNextQuiz()
-      if (!nextQuiz) return
-
-      this.currentQuiz = nextQuiz
-
-      // Create a room for each question of the quiz
-      this.rooms.createQuestionRooms(this.currentQuiz.questions.length)
-    }
 
     // Setup message handler
     client.on('message', async (message: string) =>
@@ -81,14 +81,7 @@ class QuizSocketHandler {
       // TODO: set next quiz to null when finished
       // When all users have finished quiz empty leadeboard
       if (this.rooms.usersPlayingCount() === 0) {
-        console.log('All users finished quiz')
-
-        // Set quiz winners
-        if (this.currentQuiz) {
-          await setQuizWinners(this.currentQuiz.id)
-        }
-
-        this.rooms.broadcastEnd()
+        this.endCurrentQuiz()
       }
     }
   }
@@ -101,15 +94,20 @@ class QuizSocketHandler {
     // TODO: check to don't call this twice, if already been called skip
     // If there are no more users playing tell clients the quiz is finished
     if (this.rooms.usersPlayingCount() === 0) {
-      console.log('All users finished quiz')
-
-      // Set quiz winners
-      if (this.currentQuiz) {
-        await setQuizWinners(this.currentQuiz.id)
-      }
-
-      this.rooms.broadcastEnd()
+      this.endCurrentQuiz()
     }
+  }
+
+  async endCurrentQuiz() {
+    console.log('Quiz ended')
+
+    // Set quiz winners
+    if (this.currentQuiz) {
+      await setQuizWinners(this.currentQuiz.id)
+    }
+
+    this.rooms.broadcastEnd()
+    this.currentQuiz = null
   }
 }
 
