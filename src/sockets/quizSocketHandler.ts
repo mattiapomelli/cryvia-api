@@ -70,15 +70,24 @@ class QuizSocketHandler {
       this.rooms.addToFinalRoom(userId, client)
       console.log(`User ${userId} finished quiz`)
 
+      const isLastUser = this.rooms.getUsersPlayingCount() === 0
+
       // Create submission
       const { answers } = messageData.payload
+
       if (this.currentQuiz) {
-        // TODO: await if is last user to avoid concurrenct with setWinners?
-        createSubmission({
+        const submissionData = {
           answers,
           quiz: this.currentQuiz,
           userId,
-        })
+        }
+
+        // If is last user wait the submission creation to avoid to set winners before submission is created
+        if (isLastUser) {
+          await createSubmission(submissionData)
+        } else {
+          createSubmission(submissionData)
+        }
       }
 
       // If no more users are playing end quiz
