@@ -36,6 +36,15 @@ class RoomManager {
     this.usersPlayingCount = 0
   }
 
+  isQuestionRoom(roomId: number) {
+    return (
+      roomId !== WAITING_ROOM_ID &&
+      roomId !== FINAL_ROOM_ID &&
+      roomId >= 0 &&
+      roomId < this.questionRooms.length
+    )
+  }
+
   getRoomFromId(roomId: number) {
     if (roomId === WAITING_ROOM_ID) return this.waitingRoom
     if (roomId === FINAL_ROOM_ID) return this.finalRoom
@@ -150,7 +159,7 @@ class RoomManager {
     if (!room) return
 
     // If user left room while playing, decrease counter of plyaing user
-    if (roomNumber !== WAITING_ROOM_ID && roomNumber !== FINAL_ROOM_ID) {
+    if (this.isQuestionRoom(roomNumber)) {
       this.usersPlayingCount--
     }
 
@@ -186,6 +195,15 @@ class RoomManager {
     }
 
     this.finalRoom = new Map()
+  }
+
+  isUserPlaying(userId: number) {
+    const roomNumber = this.userToRoom.get(userId)
+    if (!roomNumber) return false
+
+    if (!this.isQuestionRoom(roomNumber)) return false
+
+    return true
   }
 }
 

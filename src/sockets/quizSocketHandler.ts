@@ -78,9 +78,8 @@ class QuizSocketHandler {
         })
       }
 
-      // TODO: set next quiz to null when finished
-      // When all users have finished quiz empty leadeboard
-      if (this.rooms.usersPlayingCount() === 0) {
+      // If no more users are playing end quiz
+      if (this.rooms.getUsersPlayingCount() === 0) {
         this.endCurrentQuiz()
       }
     }
@@ -89,11 +88,12 @@ class QuizSocketHandler {
   async onClose(userId: number) {
     console.log(`User ${userId} closing connection`)
 
+    const isUserPlaying = this.rooms.isUserPlaying(userId)
+
     this.rooms.removeFromRoom(userId)
 
-    // TODO: check to don't call this twice, if already been called skip
-    // If there are no more users playing tell clients the quiz is finished
-    if (this.rooms.usersPlayingCount() === 0) {
+    // If user was playing and now there are no more playingg users, end the quiz
+    if (isUserPlaying && this.rooms.getUsersPlayingCount() === 0) {
       this.endCurrentQuiz()
     }
   }
@@ -103,6 +103,7 @@ class QuizSocketHandler {
 
     // Set quiz winners
     if (this.currentQuiz) {
+      console.log('Setting winners')
       await setQuizWinners(this.currentQuiz.id)
     }
 
