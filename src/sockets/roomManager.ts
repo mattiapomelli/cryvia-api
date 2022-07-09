@@ -3,6 +3,9 @@ import { WebSocket } from 'ws'
 import { OutputMessageType, Room } from './types'
 import { broadcast, broadcastSize } from './utils'
 
+const WAITING_ROOM_ID = -1
+const FINAL_ROOM_ID = -2
+
 class RoomManager {
   // Room of clients waiting to start the quiz
   private waitingRoom: Room
@@ -21,15 +24,24 @@ class RoomManager {
   // -1 means waitingRoom, while numbers >= 0 mean the corresponding question room
   private userToRoom: Map<number, number>
 
+  private usersFinishedCount: number
+  private usersPlayingCount: number
+
   constructor() {
     this.waitingRoom = new Map()
     this.questionRooms = []
     this.finalRoom = new Map()
     this.userToRoom = new Map()
+    this.usersFinishedCount = 0
+    this.usersPlayingCount = 0
   }
 
-  getUserRoom(userId: number) {
-    return this.userToRoom.get(userId)
+  getRoomFromId(roomId: number) {
+    if (roomId === WAITING_ROOM_ID) return this.waitingRoom
+    if (roomId === FINAL_ROOM_ID) return this.finalRoom
+    if (roomId >= this.questionRooms.length || roomId < 0) return null
+
+    return this.questionRooms[roomId]
   }
 
   /**
@@ -37,6 +49,7 @@ class RoomManager {
    * @param amount how many rooms to create
    */
   createQuestionRooms(amount: number) {
+    // TODO: rename this functino to general setup, clean all rooms just in case and reinitialize counters
     const rooms: Room[] = []
 
     for (let i = 0; i < amount; i++) {
@@ -49,7 +62,7 @@ class RoomManager {
   addToWaitingRoom(userId: number, client: WebSocket) {
     // Add client to waiting room
     this.waitingRoom.set(userId, client)
-    this.userToRoom.set(userId, -1)
+    this.userToRoom.set(userId, WAITING_ROOM_ID)
 
     console.log(`User ${userId} joined waiting room`)
 
@@ -88,6 +101,13 @@ class RoomManager {
 
     console.log(`User ${userId} passed to question room ${roomNumber}`)
 
+    // If a user came to the first question, increase the counter of playing users
+    if (roomNumber === 0) {
+      this.usersPlayingCount++
+    }
+
+    console.log('Users playing: ', this.usersPlayingCount)
+
     // Broadcast to all clients of old room the new room size
     broadcastSize(oldRoom)
 
@@ -99,7 +119,7 @@ class RoomManager {
     // Remove client from last question room
     const oldRoom = this.questionRooms[this.questionRooms.length - 1]
     oldRoom.delete(userId)
-    this.userToRoom.delete(userId)
+    this.userToRoom.set(userId, FINAL_ROOM_ID)
 
     // TODO: check that user is actually in this room
 
@@ -109,27 +129,50 @@ class RoomManager {
     // TODO: broadcast number of users who finished quiz
     console.log(`User ${userId} passed to final room`)
 
+    // Increase counter of users who finished the quiz
+    this.usersFinishedCount++
+    this.usersPlayingCount--
+
+    console.log('Users playing: ', this.usersPlayingCount)
+
     broadcastSize(oldRoom)
+    broadcast(this.finalRoom, {
+      type: OutputMessageType.RoomSize,
+      payload: this.usersFinishedCount,
+    })
   }
 
   removeFromRoom(userId: number) {
-    const roomNumber = this.getUserRoom(userId)
+    const roomNumber = this.userToRoom.get(userId)
     if (!roomNumber) return
 
+    const room = this.getRoomFromId(roomNumber)
+    if (!room) return
+
+    // If user left room while playing, decrease counter of plyaing user
+    if (roomNumber !== WAITING_ROOM_ID && roomNumber !== FINAL_ROOM_ID) {
+      this.usersPlayingCount--
+    }
+
     // Remove client from his room
-    const room =
-      roomNumber === -1 ? this.waitingRoom : this.questionRooms[roomNumber]
     room.delete(userId)
     this.userToRoom.delete(userId)
 
     console.log(`Removed user ${userId} from room ${roomNumber}`)
 
     // Broadcast to all clients new room size
-    broadcastSize(room)
+    if (roomNumber === FINAL_ROOM_ID) {
+      broadcast(this.finalRoom, {
+        type: OutputMessageType.RoomSize,
+        payload: this.usersFinishedCount,
+      })
+    } else {
+      broadcastSize(room)
+    }
   }
 
-  usersPlayingCount() {
-    return this.userToRoom.size
+  getUsersPlayingCount() {
+    return this.usersPlayingCount
   }
 
   broadcastEnd() {
