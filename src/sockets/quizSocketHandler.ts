@@ -16,9 +16,12 @@ class QuizSocketHandler {
   // Current quiz that is being played/waited
   private currentQuiz: CurrentQuiz | null
 
+  private settingWinners: boolean
+
   constructor() {
     this.rooms = new RoomManager()
     this.currentQuiz = null
+    this.settingWinners = false
   }
 
   async setupQuiz() {
@@ -99,12 +102,16 @@ class QuizSocketHandler {
   }
 
   async endCurrentQuiz() {
-    console.log('Quiz ended')
+    console.log(`Quiz ${this.currentQuiz?.id} ended`)
 
     // Set quiz winners
-    if (this.currentQuiz) {
-      console.log('Setting winners')
+    if (this.currentQuiz && !this.settingWinners) {
+      console.log(`Setting winners of quiz ${this.currentQuiz.id}`)
+
+      // Use variable as a lock to avoid concurrency
+      this.settingWinners = true
       await setQuizWinners(this.currentQuiz.id)
+      this.settingWinners = false
     }
 
     this.rooms.broadcastEnd()
