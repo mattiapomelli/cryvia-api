@@ -36,6 +36,15 @@ class RoomManager {
     this.usersPlayingCount = 0
   }
 
+  init() {
+    this.waitingRoom = new Map()
+    this.questionRooms = []
+    this.finalRoom = new Map()
+    this.userToRoom = new Map()
+    this.usersFinishedCount = 0
+    this.usersPlayingCount = 0
+  }
+
   isQuestionRoom(roomId: number) {
     return (
       roomId !== WAITING_ROOM_ID &&
@@ -189,12 +198,13 @@ class RoomManager {
       type: OutputMessageType.QuizFinished,
     })
 
-    // Close connection with all clients and empty leaderboard room
+    // Close connection with all clients
     for (const client of this.finalRoom.values()) {
       client.close()
     }
 
-    this.finalRoom = new Map()
+    // Reinitialize state
+    this.init()
   }
 
   isUserPlaying(userId: number) {
