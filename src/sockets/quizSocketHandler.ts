@@ -39,9 +39,21 @@ class QuizSocketHandler {
     const userId = Number(req.url?.split('=')[1])
     console.log('Client connected, user id: ', userId)
 
-    // TODO: Reject connection if quiz already started
     if (!this.currentQuiz) {
-      this.setupQuiz()
+      await this.setupQuiz()
+    }
+
+    // Reject connection if quiz already started
+    if (this.currentQuiz) {
+      const quizStartTime = new Date(this.currentQuiz.startTime).getTime()
+      const now = Date.now()
+
+      if (quizStartTime < now) {
+        console.log(
+          `User ${userId} tried to join quiz ${this.currentQuiz.id} when already started`,
+        )
+        return
+      }
     }
 
     // Add client to waiting room
