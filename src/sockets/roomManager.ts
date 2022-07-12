@@ -92,21 +92,29 @@ class RoomManager {
    * @param userId
    * @param client
    * @param roomNumber
-   * @returns
    */
   addToQuestionRoom(userId: number, client: WebSocket, roomNumber: number) {
     // Check if received room number is valid
     if (roomNumber > this.questionRooms.length - 1) {
       console.error(
-        `Invalid request: user ${userId} asked to join room non existent question room ${roomNumber}`,
+        `Invalid request: user ${userId} asked to join non existent question room ${roomNumber}`,
       )
       return
     }
 
-    // TODO: check user is coming from previous room
+    // Check user is actually coming from the previous room
+    const userRoom = this.userToRoom.get(userId)
+    if (
+      (roomNumber === 0 && userRoom !== WAITING_ROOM_ID) ||
+      (roomNumber > 0 && userRoom !== roomNumber - 1)
+    ) {
+      console.log(
+        `Invalid request: user ${userId} asked to join room ${roomNumber} coming from room ${userRoom}, instead of previous room`,
+      )
+      return
+    }
 
     const newRoom = this.questionRooms[roomNumber]
-    // NOTE: this doesn't seem to work?
     const oldRoom =
       roomNumber === 0 ? this.waitingRoom : this.questionRooms[roomNumber - 1]
 
@@ -134,6 +142,15 @@ class RoomManager {
   }
 
   addToFinalRoom(userId: number, client: WebSocket) {
+    // Check user is actually coming from the previous room
+    const userRoom = this.userToRoom.get(userId)
+    if (userRoom !== this.questionRooms.length - 1) {
+      console.log(
+        `Invalid request: user ${userId} asked to join final room coming from room ${userRoom}, instead of previous room`,
+      )
+      return
+    }
+
     // Remove client from last question room
     const oldRoom = this.questionRooms[this.questionRooms.length - 1]
     oldRoom.delete(userId)
@@ -144,7 +161,6 @@ class RoomManager {
     // Add user to leaderboard room
     this.finalRoom.set(userId, client)
 
-    // TODO: broadcast number of users who finished quiz
     console.log(`User ${userId} passed to final room`)
 
     // Increase counter of users who finished the quiz
