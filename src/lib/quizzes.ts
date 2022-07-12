@@ -92,7 +92,6 @@ function calculateScore(quiz: CurrentQuiz, answers: SubmissionAnswer[]) {
   }
 
   const formattedScore = Math.floor(Number(score.toFixed(2)) * 100)
-
   return formattedScore
 }
 
@@ -101,7 +100,18 @@ export async function createSubmission({
   userId,
   answers,
 }: SubmissionData) {
-  // TODO: check user hasn't already submitted
+  // Check user hasn't already submitted
+  const submission = await prisma.quizSubmission.findFirst({
+    where: {
+      quizId: quiz.id,
+      userId,
+    },
+  })
+
+  if (submission) {
+    console.error(`Error: user ${userId} tried to submit again quiz ${quiz.id}`)
+    return
+  }
 
   // Check if number of given answers is the same as the number of questions of the quiz
   if (answers.length !== quiz.questions.length) {
@@ -177,7 +187,7 @@ export async function setQuizWinners(quizId: number) {
 
   // Save winners on the blockchain
   const quizContract = await getQuizContract()
-  const tx = await quizContract.setWinners(1, winners) // TODO: replace with given id
+  const tx = await quizContract.setWinners(quizId, winners)
 
   await tx.wait()
 }
