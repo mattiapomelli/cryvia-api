@@ -16,15 +16,15 @@ class RoomManager {
   // Room with clients who finished the quiz
   finalRoom: Room
 
-  // TODO: keep track of number of users that finished (even if they left final room).
-  // Should be already done
-
   // Tracks the room where each user is at the moment. We need this to know which room
-  // to remove the user from when disconnecting
-  // -1 means waitingRoom, while numbers >= 0 mean the corresponding question room
+  // to remove the user from when disconnecting.
+  // -1 means waitingRoom, -2 final room, while numbers >= 0 mean the corresponding question room
   private userToRoom: Map<number, number>
 
+  // Number of users who have finished current the quiz
   private usersFinishedCount: number
+
+  // Number of users who are still completing the current quiz
   private usersPlayingCount: number
 
   constructor() {
@@ -77,6 +77,11 @@ class RoomManager {
     this.questionRooms = rooms
   }
 
+  /**
+   * Adds a client to the waiting room
+   * @param userId id of the user
+   * @param client client socket
+   */
   addToWaitingRoom(userId: number, client: WebSocket) {
     // Add client to waiting room
     this.waitingRoom.set(userId, client)
@@ -88,10 +93,11 @@ class RoomManager {
   }
 
   /**
-   * Moves a client to a new question room
-   * @param userId
-   * @param client
-   * @param roomNumber
+   * Moves a client to a given question room. This must respect the order of rules, so only
+   * users coming from previous rooms are allowed
+   * @param userId id of the user
+   * @param client client socket
+   * @param roomNumber question room number
    */
   addToQuestionRoom(userId: number, client: WebSocket, roomNumber: number) {
     // Check if received room number is valid
@@ -141,6 +147,11 @@ class RoomManager {
     broadcastSize(newRoom)
   }
 
+  /**
+   * Moves a client to the final room
+   * @param userId id of the user
+   * @param client client socket
+   */
   addToFinalRoom(userId: number, client: WebSocket) {
     // Check user is actually coming from the previous room
     const userRoom = this.userToRoom.get(userId)
@@ -155,8 +166,6 @@ class RoomManager {
     const oldRoom = this.questionRooms[this.questionRooms.length - 1]
     oldRoom.delete(userId)
     this.userToRoom.set(userId, FINAL_ROOM_ID)
-
-    // TODO: check that user is actually in this room
 
     // Add user to leaderboard room
     this.finalRoom.set(userId, client)
@@ -176,6 +185,10 @@ class RoomManager {
     })
   }
 
+  /**
+   * Removes a user from his room
+   * @param userId id of the user
+   */
   removeFromRoom(userId: number) {
     const roomNumber = this.userToRoom.get(userId)
     if (!roomNumber) return
@@ -209,6 +222,9 @@ class RoomManager {
     return this.usersPlayingCount
   }
 
+  /**
+   * Broadcasts the end of the quiz to all the clients
+   */
   broadcastEnd() {
     broadcast(this.finalRoom, {
       type: OutputMessageType.QuizFinished,
