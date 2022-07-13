@@ -11,6 +11,12 @@ if (!process.env.OWNER_PRIVATE_KEY) {
   throw Error('Environment variable OWNER_PRIVATE_KEY must be defined')
 }
 
+if (!process.env.CHAIN_ID) {
+  throw Error('Environment variable OWNER_PRIVATE_KEY must be defined')
+}
+
+const chainId = parseInt(process.env.CHAIN_ID)
+
 export const getSigner = (privateKey: string) =>
   new ethers.Wallet(privateKey, provider)
 
@@ -18,7 +24,7 @@ const owner = getSigner(process.env.OWNER_PRIVATE_KEY)
 
 export async function getQuizContract(signer?: Signer) {
   return new ethers.Contract(
-    QUIZ_CONTRACT_ADDRESS,
+    QUIZ_CONTRACT_ADDRESS[chainId],
     QuizContractAbi.abi,
     signer || owner,
   ) as Quiz
@@ -26,7 +32,7 @@ export async function getQuizContract(signer?: Signer) {
 
 export async function getTokenContract(signer?: Signer) {
   return new ethers.Contract(
-    TOKEN_ADDRESS,
+    TOKEN_ADDRESS[chainId],
     ERC20Abi.abi,
     signer || owner,
   ) as ERC20
