@@ -26,42 +26,5 @@ controllers.register(config, async (req, res) => {
     },
   })
 
-  // Delete user
-  // const deleteUser = prisma.$executeRaw`DELETE FROM users WHERE id=${id};`
-
-  // // Delete submissions
-  // const deleteSubmissions = prisma.$executeRaw`DELETE FROM quiz_submissions WHERE userId=(${id});`
-
-  // // Get submissions to delete
-  // const submissions = await prisma.quizSubmission.findMany({
-  //   where: {
-  //     userId: id,
-  //   },
-  // })
-
-  // // Delete submission answers of the submissions to delete
-  // const submissionsIds = submissions.map((submission) => submission.id)
-  // const deleteSubmissionsAnswers = prisma.submissionAnswers.deleteMany({
-  //   where: {
-  //     submissionId: {
-  //       in: submissionsIds,
-  //     },
-  //   },
-  // })
-
-  // // Delete subscriptions
-  // const deleteSubscriptions = prisma.quizSubscription.deleteMany({
-  //   where: {
-  //     userId: id,
-  //   },
-  // })
-
-  // await prisma.$transaction([
-  //   deleteSubscriptions,
-  //   deleteSubmissionsAnswers,
-  //   deleteSubmissions,
-  //   deleteUser,
-  // ])
-
   return res.resolve({ message: 'User deleted' })
 })
