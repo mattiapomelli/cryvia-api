@@ -30,6 +30,7 @@ model Quiz {
   startTime     DateTime
   createdAt     DateTime           @default(now())
   image         String?
+  ended         Boolean            @default(false)
   questions     QuizQuestions[]
   submissions   QuizSubmission[]
   subscriptions QuizSubscription[]

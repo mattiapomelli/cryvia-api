@@ -5,6 +5,7 @@ import {
   createSubmission,
   CurrentQuiz,
   getNextQuiz,
+  setQuizEnded,
   setQuizWinners,
 } from '@lib/quizzes'
 import RoomManager from './roomManager'
@@ -132,6 +133,7 @@ class QuizSocketHandler {
       // Use variable as a lock to avoid concurrency
       this.settingWinners = true
       await setQuizWinners(this.currentQuiz.id)
+      await setQuizEnded(this.currentQuiz.id)
       this.settingWinners = false
     }
 

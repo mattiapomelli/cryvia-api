@@ -191,3 +191,14 @@ export async function setQuizWinners(quizId: number) {
 
   await tx.wait()
 }
+
+export async function setQuizEnded(quizId: number) {
+  await prisma.quiz.update({
+    where: {
+      id: quizId,
+    },
+    data: {
+      ended: true,
+    },
+  })
+}
