@@ -1,3 +1,4 @@
+import { getQuizContract } from '@lib/contracts'
 import prisma from '@lib/prisma'
 import controllers, { ControllerConfig } from '@utils/controllers'
 import { quizValidators } from '@validation/quizzes'
@@ -14,6 +15,7 @@ controllers.register(config, async (req, res) => {
   }
 
   const userId = res.getLocals('userId')
+  const userAddress = res.getLocals('userAddress')
 
   // Check if quiz exists
   const quizId = Number(req.params.id)
@@ -27,7 +29,17 @@ controllers.register(config, async (req, res) => {
     return res.notFound('Quiz to suscribe to not found')
   }
 
-  // Check it user is already subscribed
+  // TODO: check if user is subscribed in the smart contract (so has paid the fee)
+  const quizContract = await getQuizContract()
+  const isSubscribed = await quizContract.isSubscribed(quizId, userAddress)
+
+  if (!isSubscribed) {
+    return res.forbidden(
+      "You cannot subscribe to a quiz you haven't paid the fee for",
+    )
+  }
+
+  // Check if user is already subscribed
   const subscription = await prisma.quizSubscription.findUnique({
     where: {
       quizId_userId: {
@@ -38,7 +50,7 @@ controllers.register(config, async (req, res) => {
   })
 
   if (subscription) {
-    return res.badRequest(`You are already suscribed to quiz ${quizId}`)
+    return res.badRequest(`You are already subscribed to quiz ${quizId}`)
   }
 
   // Subscribe user to quiz
@@ -49,5 +61,5 @@ controllers.register(config, async (req, res) => {
     },
   })
 
-  return res.resolve(`Succesfully unsuscribed to quiz ${quizId}`)
+  return res.resolve(`Succesfully subscribed to quiz ${quizId}`)
 })
