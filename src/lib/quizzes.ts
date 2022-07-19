@@ -66,7 +66,7 @@ interface SubmissionData {
   userId: number
 }
 
-const SECONDS_PER_QUESTION = 10
+const SECONDS_PER_QUESTION = 20
 
 function calculateScore(quiz: CurrentQuiz, answers: SubmissionAnswer[]) {
   let score = 0
