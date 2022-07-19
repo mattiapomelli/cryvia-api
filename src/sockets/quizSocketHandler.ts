@@ -11,6 +11,8 @@ import {
 import RoomManager from './roomManager'
 import { InputMessageType } from './types'
 
+const SECONDS_PER_QUESTION = 20
+
 class QuizSocketHandler {
   private rooms: RoomManager
 
@@ -29,10 +31,30 @@ class QuizSocketHandler {
     const nextQuiz = await getNextQuiz()
     if (!nextQuiz) return
 
+    console.log('Setting current quiz, id: ', nextQuiz.id)
     this.currentQuiz = nextQuiz
 
     // Create a room for each question of the quiz
     this.rooms.createQuestionRooms(this.currentQuiz.questions.length)
+
+    // Calculate the timestamp at which the quiz will end, based on number of questions and
+    // adding an extra 10 seconds just to be sure
+    const startTime = new Date(this.currentQuiz.startTime).getTime()
+    const quizDuration =
+      this.currentQuiz.questions.length * SECONDS_PER_QUESTION * 1000
+    const estimatedEndTime = startTime + quizDuration + 10000
+    const timeLeft = estimatedEndTime - Date.now()
+
+    console.log(
+      'Estimated end time of current quiz: ',
+      new Date(estimatedEndTime).toLocaleTimeString(),
+    )
+
+    // If for some reason quiz doesn't end automatically when every users finishes/disconnects,
+    // them manually end quiz when it should be over
+    setTimeout(() => {
+      this.endCurrentQuiz()
+    }, timeLeft)
   }
 
   async onConnection(client: WebSocket, req: http.IncomingMessage) {
@@ -56,6 +78,8 @@ class QuizSocketHandler {
         return
       }
     }
+
+    // TODO: Reject connection if user is not subscribed (only done on frontend side for now)
 
     // Add client to waiting room
     this.rooms.addToWaitingRoom(userId, client)
@@ -127,7 +151,9 @@ class QuizSocketHandler {
     console.log(`Quiz ${this.currentQuiz?.id} ended`)
 
     // Set quiz winners
-    if (this.currentQuiz && !this.settingWinners) {
+    if (this.settingWinners) return
+
+    if (this.currentQuiz) {
       console.log(`Setting winners of quiz ${this.currentQuiz.id}`)
 
       // Use variable as a lock to avoid concurrency
