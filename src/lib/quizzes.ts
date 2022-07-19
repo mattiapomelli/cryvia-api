@@ -3,6 +3,8 @@ import { Answer, Question } from '@prisma/client'
 import prisma from '@lib/prisma'
 import { getQuizContract } from '@lib/contracts'
 
+const NUMBER_OF_WINNERS = 2
+
 export interface CurrentQuiz {
   id: number
   startTime: Date
@@ -170,7 +172,7 @@ export async function setQuizWinners(quizId: number) {
     orderBy: {
       score: 'desc',
     },
-    take: 3, // TODO: replace with number of winners of the quiz
+    take: NUMBER_OF_WINNERS, // TODO: replace with number of winners of the quiz
     include: {
       user: {
         select: {
