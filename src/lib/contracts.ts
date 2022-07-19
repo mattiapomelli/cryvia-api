@@ -12,7 +12,7 @@ if (!process.env.OWNER_PRIVATE_KEY) {
 }
 
 if (!process.env.CHAIN_ID) {
-  throw Error('Environment variable OWNER_PRIVATE_KEY must be defined')
+  throw Error('Environment variable CHAIN_ID must be defined')
 }
 
 const chainId = parseInt(process.env.CHAIN_ID)
