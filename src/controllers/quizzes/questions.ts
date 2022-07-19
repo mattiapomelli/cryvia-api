@@ -45,7 +45,8 @@ controllers.register(config, async (req, res) => {
             select: {
               id: true,
               text: true,
-              correct: false,
+              // Return correctness of questions only when live quiz is finished
+              correct: quiz.ended ? true : false,
               index: false,
               questionId: false,
             },
