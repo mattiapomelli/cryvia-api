@@ -230,6 +230,14 @@ class RoomManager {
       type: OutputMessageType.QuizFinished,
     })
 
+    // There should be nobody in question rooms when quiz is over, but just to be sure broadcast end of quiz
+    // even to them
+    for (const room of this.questionRooms) {
+      broadcast(room, {
+        type: OutputMessageType.QuizFinished,
+      })
+    }
+
     // Close connection with all clients
     for (const client of this.finalRoom.values()) {
       client.close()
