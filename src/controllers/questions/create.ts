@@ -6,7 +6,7 @@ import controllers, { AuthType, ControllerConfig } from '@utils/controllers'
 const config: ControllerConfig = {
   method: 'post',
   path: '/questions',
-  auth: AuthType.PUBLIC,
+  auth: AuthType.ADMIN,
 }
 
 controllers.register(config, async (req, res) => {
