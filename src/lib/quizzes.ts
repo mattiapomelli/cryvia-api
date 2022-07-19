@@ -3,7 +3,7 @@ import { Answer, Question } from '@prisma/client'
 import prisma from '@lib/prisma'
 import { getQuizContract } from '@lib/contracts'
 
-const NUMBER_OF_WINNERS = 2
+const NUMBER_OF_WINNERS = 3
 
 export interface CurrentQuiz {
   id: number
