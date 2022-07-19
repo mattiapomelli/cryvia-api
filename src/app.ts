@@ -16,6 +16,7 @@ const port = process.env.PORT || 8000
 const server = http.createServer(app)
 
 // Setup web socket server
+// to push
 const wss = new WebSocketServer({ server })
 const quizSocketHandler = new QuizSocketHandler()
 
