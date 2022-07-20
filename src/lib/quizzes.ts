@@ -189,8 +189,11 @@ export async function setQuizWinners(quizId: number) {
 
   // Save winners on the blockchain
   const quizContract = await getQuizContract()
+
+  console.log('Setting winners in smart contract')
   const tx = await quizContract.setWinners(quizId, winners)
 
+  console.log('Awaiting confirmation, txn hash: ', tx.hash)
   await tx.wait()
 }
 
