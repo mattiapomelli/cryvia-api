@@ -1,11 +1,6 @@
-import jwt from 'jsonwebtoken'
+import { verifyJwt } from '@lib/jwt'
 
 import { Middleware } from 'types'
-
-interface JwtPaylod {
-  id: string
-  address: string
-}
 
 const authMiddleware: Middleware = async (req, res, next) => {
   if (!req.headers['x-auth-token']) {
@@ -15,14 +10,9 @@ const authMiddleware: Middleware = async (req, res, next) => {
   // Get jwt from header
   const token = req.headers['x-auth-token'].toString()
 
-  if (!process.env.JWT_SECRET) {
-    console.log('JWT_SECRET envinronment variable must be set')
-    throw new Error()
-  }
-
   try {
     // Verify jwt
-    const payload = jwt.verify(token, process.env.JWT_SECRET) as JwtPaylod
+    const payload = verifyJwt(token)
 
     // TODO: Check if id corresponds to an existing user?
 
