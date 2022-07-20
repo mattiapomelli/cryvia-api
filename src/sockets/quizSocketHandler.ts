@@ -20,12 +20,16 @@ class QuizSocketHandler {
   // Current quiz that is being played/waited
   private currentQuiz: CurrentQuiz | null
 
+  // Timestamp at which the quiz should be finished
+  private estimatedEndTime: number | null
+
   private settingWinners: boolean
 
   private constructor() {
     this.rooms = new RoomManager()
     this.currentQuiz = null
     this.settingWinners = false
+    this.estimatedEndTime = null
   }
 
   public static getInstance(): QuizSocketHandler {
@@ -34,6 +38,10 @@ class QuizSocketHandler {
     }
 
     return QuizSocketHandler.instance
+  }
+
+  getCurrentQuiz() {
+    return this.currentQuiz
   }
 
   async setupQuiz() {
@@ -51,12 +59,13 @@ class QuizSocketHandler {
     const startTime = new Date(this.currentQuiz.startTime).getTime()
     const quizDuration =
       this.currentQuiz.questions.length * SECONDS_PER_QUESTION * 1000
-    const estimatedEndTime = startTime + quizDuration + 10000
-    const timeLeft = estimatedEndTime - Date.now()
+
+    this.estimatedEndTime = startTime + quizDuration + 10000
+    const timeLeft = this.estimatedEndTime - Date.now()
 
     console.log(
       'Estimated end time of current quiz: ',
-      new Date(estimatedEndTime).toLocaleTimeString(),
+      new Date(this.estimatedEndTime).toLocaleTimeString(),
     )
 
     // If for some reason quiz doesn't end automatically when every users finishes/disconnects,
@@ -174,6 +183,19 @@ class QuizSocketHandler {
 
     this.rooms.broadcastEnd()
     this.currentQuiz = null
+    this.estimatedEndTime = null
+  }
+
+  getInfo() {
+    const roomsInfo = this.rooms.getInfo()
+
+    return {
+      currentQuiz: this.currentQuiz?.id || null,
+      estimatedEndTime: this.estimatedEndTime
+        ? new Date(this.estimatedEndTime).toLocaleTimeString()
+        : null,
+      rooms: roomsInfo,
+    }
   }
 }
 

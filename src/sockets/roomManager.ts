@@ -255,6 +255,19 @@ class RoomManager {
 
     return true
   }
+
+  getInfo() {
+    return {
+      usersPlayingCount: this.usersPlayingCount,
+      usersFinishedCount: this.usersFinishedCount,
+      roomSize: {
+        waitingRoom: this.waitingRoom.size,
+        questionRooms: this.questionRooms.map((room) => room.size),
+        finalRoom: this.finalRoom.size,
+      },
+      userToRoom: Object.fromEntries(this.userToRoom),
+    }
+  }
 }
 
 export default RoomManager
