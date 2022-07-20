@@ -6,7 +6,9 @@ import http from 'http'
 import cors from 'cors'
 
 import controllers from './utils/controllers'
-import QuizSocketHandler from 'sockets/quizSocketHandler'
+import QuizSocketHandler from './sockets/quizSocketHandler'
+import { verifyClient } from './sockets/utils'
+import { ExtendedRequest } from 'sockets/types'
 
 dotenv.config()
 
@@ -16,11 +18,14 @@ const port = process.env.PORT || 8000
 const server = http.createServer(app)
 
 // Setup web socket server
-// to push
-const wss = new WebSocketServer({ server })
+const wss = new WebSocketServer({
+  server,
+  verifyClient,
+})
+
 const quizSocketHandler = new QuizSocketHandler()
 
-wss.on('connection', (client: WebSocket, req: http.IncomingMessage) =>
+wss.on('connection', (client: WebSocket, req: ExtendedRequest) =>
   quizSocketHandler.onConnection(client, req),
 )
 

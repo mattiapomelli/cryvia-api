@@ -1,3 +1,4 @@
+import { IncomingMessage } from 'http'
 import { WebSocket } from 'ws'
 
 export type Room = Map<number, WebSocket>
@@ -15,4 +16,11 @@ export enum InputMessageType {
 export enum OutputMessageType {
   QuizFinished = 'quizFinished',
   RoomSize = 'roomSize',
+}
+
+export interface ExtendedRequest extends IncomingMessage {
+  user: {
+    id: number
+    address: string
+  }
 }

@@ -1,5 +1,4 @@
 import { WebSocket } from 'ws'
-import http from 'http'
 
 import {
   createSubmission,
@@ -9,7 +8,7 @@ import {
   setQuizWinners,
 } from '@lib/quizzes'
 import RoomManager from './roomManager'
-import { InputMessageType } from './types'
+import { ExtendedRequest, InputMessageType } from './types'
 
 const SECONDS_PER_QUESTION = 20
 
@@ -57,9 +56,9 @@ class QuizSocketHandler {
     }, timeLeft)
   }
 
-  async onConnection(client: WebSocket, req: http.IncomingMessage) {
-    // Get userId from url
-    const userId = Number(req.url?.split('=')[1])
+  async onConnection(client: WebSocket, req: ExtendedRequest) {
+    // Get userId attached to request
+    const userId = req.user.id
     console.log('Client connected, user id: ', userId)
 
     if (!this.currentQuiz) {
