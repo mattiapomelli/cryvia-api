@@ -23,7 +23,7 @@ const wss = new WebSocketServer({
   verifyClient,
 })
 
-const quizSocketHandler = new QuizSocketHandler()
+const quizSocketHandler = QuizSocketHandler.getInstance()
 
 wss.on('connection', (client: WebSocket, req: ExtendedRequest) =>
   quizSocketHandler.onConnection(client, req),

@@ -13,6 +13,8 @@ import { ExtendedRequest, InputMessageType } from './types'
 const SECONDS_PER_QUESTION = 20
 
 class QuizSocketHandler {
+  private static instance: QuizSocketHandler
+
   private rooms: RoomManager
 
   // Current quiz that is being played/waited
@@ -20,10 +22,18 @@ class QuizSocketHandler {
 
   private settingWinners: boolean
 
-  constructor() {
+  private constructor() {
     this.rooms = new RoomManager()
     this.currentQuiz = null
     this.settingWinners = false
+  }
+
+  public static getInstance(): QuizSocketHandler {
+    if (!QuizSocketHandler.instance) {
+      QuizSocketHandler.instance = new QuizSocketHandler()
+    }
+
+    return QuizSocketHandler.instance
   }
 
   async setupQuiz() {
