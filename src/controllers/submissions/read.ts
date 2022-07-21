@@ -20,31 +20,11 @@ controllers.register(config, async (req, res) => {
       id,
     },
     select: {
+      id: true,
       quiz: {
         select: {
           id: true,
           title: true,
-          questions: {
-            select: {
-              question: {
-                include: {
-                  answers: {
-                    select: {
-                      id: true,
-                      text: true,
-                      correct: true,
-                    },
-                    orderBy: {
-                      index: 'asc',
-                    },
-                  },
-                },
-              },
-            },
-            orderBy: {
-              index: 'asc',
-            },
-          },
         },
       },
       user: {
@@ -62,16 +42,20 @@ controllers.register(config, async (req, res) => {
         },
         select: {
           question: {
-            select: {
-              id: true,
+            include: {
+              answers: {
+                select: {
+                  id: true,
+                  text: true,
+                  correct: true,
+                },
+                orderBy: {
+                  index: 'asc',
+                },
+              },
             },
           },
-          answer: {
-            select: {
-              id: true,
-              correct: true,
-            },
-          },
+          answerId: true,
           time: true,
         },
       },
