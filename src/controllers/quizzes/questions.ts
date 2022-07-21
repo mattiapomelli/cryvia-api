@@ -59,5 +59,5 @@ controllers.register(config, async (req, res) => {
     },
   })
 
-  res.resolve(questions)
+  res.resolve(questions.map((q) => q.question))
 })
