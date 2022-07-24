@@ -18,8 +18,15 @@ controllers.register(config, async (req, res) => {
     },
     select: {
       id: true,
-      quiz: true,
+      quiz: {
+        select: {
+          title: true,
+          categories: true,
+          description: true,
+        },
+      },
       submittedAt: true,
+      score: true,
     },
   })
 
