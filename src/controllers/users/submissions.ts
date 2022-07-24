@@ -1,10 +1,11 @@
 import prisma from '@lib/prisma'
-import controllers, { ControllerConfig } from '@utils/controllers'
+import controllers, { ControllerConfig, AuthType } from '@utils/controllers'
 import validateUser from '@validation/users'
 
 const config: ControllerConfig = {
   method: 'get',
   path: '/users/:id/submissions',
+  auth: AuthType.PUBLIC
   // TODO: make only admin? Or only owner?
 }
 
