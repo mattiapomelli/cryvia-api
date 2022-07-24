@@ -27,6 +27,7 @@ controllers.register(config, async (req, res) => {
       id: true,
       quiz: {
         select: {
+          id: true,
           title: true,
           description: true,
           categories: true,
