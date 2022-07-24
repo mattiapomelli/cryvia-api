@@ -5,7 +5,7 @@ import validateUser from '@validation/users'
 const config: ControllerConfig = {
   method: 'get',
   path: '/users/:id/submissions',
-  auth: AuthType.PUBLIC
+  auth: AuthType.PUBLIC,
   // TODO: make only admin? Or only owner?
 }
 
@@ -25,8 +25,15 @@ controllers.register(config, async (req, res) => {
     },
     select: {
       id: true,
-      quiz: true,
+      quiz: {
+        select: {
+          title: true,
+          description: true,
+          categories: true,
+        },
+      },
       submittedAt: true,
+      score: true,
     },
   })
 
