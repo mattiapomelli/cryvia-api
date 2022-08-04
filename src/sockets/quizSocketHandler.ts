@@ -110,6 +110,7 @@ class QuizSocketHandler {
         console.log(
           `User ${userId} tried to join quiz ${this.currentQuiz.id} when already started`,
         )
+        client.close()
         return
       }
     }
