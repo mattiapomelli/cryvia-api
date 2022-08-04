@@ -16,8 +16,9 @@ controllers.register(config, async (req, res) => {
     data: {
       text,
       answers: {
-        create: (answers as Answer[]).map((answer) => ({
+        create: (answers as Answer[]).map((answer, index) => ({
           ...answer,
+          index,
         })),
       },
     },
