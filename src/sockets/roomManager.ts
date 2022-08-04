@@ -268,6 +268,10 @@ class RoomManager {
       userToRoom: Object.fromEntries(this.userToRoom),
     }
   }
+
+  countQuestionRooms() {
+    return this.questionRooms.length
+  }
 }
 
 export default RoomManager

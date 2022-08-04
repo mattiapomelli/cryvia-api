@@ -23,6 +23,8 @@ class QuizSocketHandler {
   // Timestamp at which the quiz should be finished
   private estimatedEndTime: number | null
 
+  private quizEndTimeoutId: NodeJS.Timeout | undefined
+
   private settingWinners: boolean
 
   private constructor() {
@@ -44,15 +46,12 @@ class QuizSocketHandler {
     return this.currentQuiz
   }
 
-  async setupQuiz() {
-    const nextQuiz = await getNextQuiz()
-    if (!nextQuiz) return
+  setQuizEndTime() {
+    if (!this.currentQuiz) return
 
-    console.log('Setting current quiz, id: ', nextQuiz.id)
-    this.currentQuiz = nextQuiz
-
-    // Create a room for each question of the quiz
-    this.rooms.createQuestionRooms(this.currentQuiz.questions.length)
+    if (this.quizEndTimeoutId) {
+      clearTimeout(this.quizEndTimeoutId)
+    }
 
     // Calculate the timestamp at which the quiz will end, based on number of questions and
     // adding an extra 10 seconds just to be sure
@@ -70,9 +69,27 @@ class QuizSocketHandler {
 
     // If for some reason quiz doesn't end automatically when every users finishes/disconnects,
     // them manually end quiz when it should be over
-    setTimeout(() => {
+    this.quizEndTimeoutId = setTimeout(() => {
       this.endCurrentQuiz()
     }, timeLeft)
+  }
+
+  async setupQuiz() {
+    const nextQuiz = await getNextQuiz()
+    if (!nextQuiz) return
+
+    console.log('Setting current quiz, id: ', nextQuiz.id)
+    this.currentQuiz = nextQuiz
+
+    if (!this.currentQuiz) return
+
+    // If number of quiz questions has changed, re-create question rooms
+    if (this.currentQuiz.questions.length !== this.rooms.countQuestionRooms()) {
+      // Create a room for each question of the quiz
+      this.rooms.createQuestionRooms(this.currentQuiz.questions.length)
+    }
+
+    this.setQuizEndTime()
   }
 
   async onConnection(client: WebSocket, req: ExtendedRequest) {
