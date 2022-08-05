@@ -10,7 +10,11 @@ import QuizSocketHandler from './sockets/quizSocketHandler'
 import { verifyClient } from './sockets/utils'
 import { ExtendedRequest } from 'sockets/types'
 
-dotenv.config()
+import path from 'path'
+
+dotenv.config({
+  path: path.resolve(__dirname, '../.env')
+})
 
 const app: Express = express()
 const port = process.env.PORT || 8000
