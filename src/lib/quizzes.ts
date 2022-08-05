@@ -187,6 +187,11 @@ export async function setQuizWinners(quizId: number) {
 
   console.log(`Winners of quiz ${quizId}: `, winners)
 
+  if (winners.length === 0) {
+    console.log('Something went wrong or no user participated...')
+    return
+  }
+
   // Save winners on the blockchain
   const quizContract = await getQuizContract()
 
