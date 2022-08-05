@@ -11,14 +11,14 @@ controllers.register(config, async (req, res) => {
   const nextQuiz = await prisma.quiz.findFirst({
     where: {
       startTime: {
-        gte: new Date(),
+        gt: new Date(),
       },
     },
     include: {
       categories: true,
     },
     orderBy: {
-      startTime: 'desc',
+      startTime: 'asc',
     },
   })
 
