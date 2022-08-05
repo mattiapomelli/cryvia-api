@@ -21,6 +21,7 @@ controllers.register(config, async (req, res) => {
     },
     include: {
       categories: true,
+      resources: true,
     },
   })
 
