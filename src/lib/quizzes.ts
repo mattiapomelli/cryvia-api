@@ -200,6 +200,8 @@ export async function setQuizWinners(quizId: number) {
 
   console.log('Awaiting confirmation, txn hash: ', tx.hash)
   await tx.wait()
+
+  console.log('Done with setting wrinners')
 }
 
 export async function setQuizEnded(quizId: number) {
