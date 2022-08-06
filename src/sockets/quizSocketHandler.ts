@@ -213,7 +213,12 @@ class QuizSocketHandler {
         ? new Date(this.estimatedEndTime).toLocaleTimeString()
         : null,
       rooms: roomsInfo,
+      settingWinners: this.settingWinners,
     }
+  }
+
+  setSettingWinners(value: boolean) {
+    this.settingWinners = value
   }
 }
 
