@@ -8,7 +8,23 @@ const config: ControllerConfig = {
 }
 
 controllers.register(config, async (req, res) => {
+  const { onlyPast, onlyUpcoming } = req.query
+
   const quizzes = await prisma.quiz.findMany({
+    ...(onlyPast && {
+      where: {
+        startTime: {
+          lt: new Date(),
+        },
+      },
+    }),
+    ...(onlyUpcoming && {
+      where: {
+        startTime: {
+          gt: new Date(),
+        },
+      },
+    }),
     include: {
       categories: true,
     },
