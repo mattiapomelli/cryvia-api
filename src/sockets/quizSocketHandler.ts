@@ -4,8 +4,8 @@ import {
   createSubmission,
   CurrentQuiz,
   getNextQuiz,
-  setQuizEnded,
-  setQuizWinners,
+  // setQuizEnded,
+  // setQuizWinners,
 } from '@lib/quizzes'
 import RoomManager from './roomManager'
 import { ExtendedRequest, InputMessageType } from './types'
@@ -187,17 +187,17 @@ class QuizSocketHandler {
     console.log(`Quiz ${this.currentQuiz?.id} ended`)
 
     // Set quiz winners
-    if (this.settingWinners) return
+    // if (this.settingWinners) return
 
-    if (this.currentQuiz) {
-      console.log(`Setting winners of quiz ${this.currentQuiz.id}`)
+    // if (this.currentQuiz) {
+    //   console.log(`Setting winners of quiz ${this.currentQuiz.id}`)
 
-      // Use variable as a lock to avoid concurrency
-      this.settingWinners = true
-      await setQuizWinners(this.currentQuiz.id)
-      await setQuizEnded(this.currentQuiz.id)
-      this.settingWinners = false
-    }
+    //   // Use variable as a lock to avoid concurrency
+    //   this.settingWinners = true
+    //   await setQuizWinners(this.currentQuiz.id)
+    //   await setQuizEnded(this.currentQuiz.id)
+    //   this.settingWinners = false
+    // }
 
     this.rooms.broadcastEnd()
     this.currentQuiz = null
